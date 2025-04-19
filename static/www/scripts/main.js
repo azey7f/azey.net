@@ -27,7 +27,7 @@ import cmds from './commands/meta.js';
 			out.simulate_key("Enter");
 
 			await sleep(500);
-			await out.simulate_typing("help");
+			await out.simulate_typing("cat ./welcome.txt");
 			out.simulate_key("Enter");
 
 			window.term_locked = false;
@@ -55,7 +55,6 @@ import cmds from './commands/meta.js';
 			}
 
 			let input = out.get_input();
-			out.remove_styling(input);
 
 			if (event.key.length == 1) {
 				if (!event.ctrlKey) {
@@ -68,6 +67,7 @@ import cmds from './commands/meta.js';
 					case 'c': {
 						// cancel
 						window.history_current = 0;
+						input.innerHTML = input.innerText;
 						out.add_styling(input, true);
 						input.innerHTML += '^C';
 						out.newline();
@@ -141,7 +141,10 @@ import cmds from './commands/meta.js';
 					// cmd execution
 					} case "Enter": {
 						window.term_locked = true;
-						await out.add_styling(input, true);
+
+						// remove cursor
+						input.innerHTML = input.innerText;
+						out.add_styling(input, true);
 
 						const [cmd, ...args] = input.innerText
 							.slice(0, window.cursor_pos)
@@ -225,7 +228,7 @@ import cmds from './commands/meta.js';
 							await util.use_index(path.substring(0, path.lastIndexOf('/')), async (dir_index) => {
 								dir_index = dir_index.trim().split(/\r?\n/);
 								if (!word.length || dir_index.includes(word)) {
-									await out.add_styling(input, true);
+									out.add_styling(input, true);
 									const cursor_pos = window.cursor_pos
 
 									out.newline();
@@ -249,7 +252,7 @@ import cmds from './commands/meta.js';
 									// no common autocompletion
 									const cursor_pos = window.cursor_pos
 
-									await out.add_styling(input, true);
+									out.add_styling(input, true);
 									out.newline();
 									for (const completion of possible_completions) {
 										await out.println(path+completion);

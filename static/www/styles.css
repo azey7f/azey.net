@@ -97,18 +97,15 @@ span#cursor.s {
 	box-shadow: 0 0 5pt white
 }
 
-span.prompt > span.user,
-span.prompt > span.dir {
+span.user, span.dir {
 	color: #33ccff;
 	text-shadow: 0 0 6pt #33ccff;
 }
-span.input > span.cmd,
-span.input-history > span.cmd {
+span.cmd {
 	color: #3d5bf5;
 	text-shadow: 0 0 6pt #3d5bf5;
 }
-span.input > span.args,
-span.input-history > span.args {
+span.args {
 	color: #33ccff;
 	text-shadow: 0 0 6pt #33ccff;
 }

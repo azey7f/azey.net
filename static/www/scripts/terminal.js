@@ -34,25 +34,34 @@ export async function print(str, {
 	stoppable=false,
 	reset_stop=true,
 	term_lock=false,
+	html_open, html_close,
 	stdout
 }={}) {
+	let success = true;
 	if (term_lock) { window.term_locked = true; }
 
 	let line = stdout ? stdout : terminal.lastElementChild;
+
 	for (let i=0; i < str.length; ++i) {
-		line.innerText += str[i];
+		if (html_open && html_close) {
+			line.innerHTML = line.innerText.slice(0, line.innerText.length - i) +
+				html_open+str.slice(0, i+1)+html_close;
+		} else {
+			line.innerHTML += str[i];
+		}
 		terminal.scrollTop = terminal.scrollHeight;
 		if (delay != 0) {
 			await sleep(delay + Math.floor(Math.random() * random_delay));
 		}
 		if (stoppable && window.stop_print) {
 			if (reset_stop) window.stop_print = false;
-			return false;
+			success = false;
+			break;
 		}
 	}
 
 	if (term_lock) { window.term_locked = false; }
-	return true;
+	return success;
 }
 
 export async function println(str, {
@@ -63,9 +72,10 @@ export async function println(str, {
 	stoppable=false,
 	reset_stop=true,
 	term_lock=false,
+	html_open, html_close,
 	stdout
 }={}) {
-	if (await print(str, { delay, random_delay, stoppable, reset_stop, term_lock, stdout })) {
+	if (await print(str, { delay, random_delay, stoppable, reset_stop, term_lock, stdout, html_open, html_close })) {
 		newline(spaced, nowrap);
 	} else { await println("^C"); return false; }
 
@@ -80,16 +90,17 @@ export async function print_all(str, {
 	nowrap=false,
 	stoppable=false,
 	reset_stop=true,
-	term_lock=false
+	term_lock=false,
+	html_open, html_close
 }={}) {
 	if (term_lock) { window.term_locked = true; }
 
-	const arr = str.split("\n");
+	const arr = Array.isArray(str) ? str : str.split("\n");
 	for (var i = 0; i < arr.length; ++i) {
 		if (await println(arr[i], {
 			delay: char_delay,
 			random_delay: char_random_delay,
-			spaced, stoppable, reset_stop, nowrap
+			spaced, stoppable, reset_stop, nowrap, html_open, html_close
 		})) {
 			if (delay != 0) { await sleep(delay); }
 		} else { return false; }
@@ -97,6 +108,17 @@ export async function print_all(str, {
 
 	if (term_lock) { window.term_locked = false; }
 	return true;
+}
+
+export async function delete_printed(count=1, { delay=5, random_delay=0 }={}) {
+	const line = terminal.lastElementChild;
+	for (let i=0; i < count; ++i) {
+		line.innerHTML = line.innerHTML.slice(0,-1);
+
+		if (delay != 0) {
+			await sleep(delay + Math.floor(Math.random() * random_delay));
+		}
+	}
 }
 
 export function simulate_key(key) {
@@ -142,13 +164,8 @@ export function del(stdout, from, to, cursor_move=null) {
 }
 
 // cursor
-export function remove_styling(stdout) {
-	while (stdout.innerHTML.search(/<span.*>.*<\/span>/) != -1) {
-		stdout.innerHTML = stdout.innerHTML.replace(/<span.*?>(.*?)<\/span>/, '$1');
-	}
-}
 export function add_styling(stdout, no_cursor=false) {
-	const str = stdout.innerHTML;
+	const str = stdout.innerText;
 	const char = str.charAt(window.cursor_pos);
 
 	const first_nonwhitespace = str.search(/\S/);
