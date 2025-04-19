@@ -10,6 +10,12 @@ export default async (args=[]) => {
 		const processed_path = await process_path(path);
 		const err = `cat: ${path}: No such file or directory`;
 
+		if (processed_path.endsWith('@')) {
+			const url = "https://"+processed_path.slice(processed_path.lastIndexOf("/"),-1);
+			await out.println(url, { html_open:`<a href="${url}">`, html_close:"</a>" });
+			continue;
+		}
+
 		if ((await fetch(processed_path+"/.index")).ok) {
 			await out.println(`cat: ${path}: Is a directory`);
 			continue;

@@ -242,8 +242,8 @@ import cmds from './commands/meta.js';
 							return;
 						}
 
-						// only dirs
-						if (cmd == "cd") { dir_index = dir_index.filter((p) => p.endsWith("/")); }
+						// only dirs & links
+						if (cmd == "cd") { dir_index = dir_index.filter((p) => p.endsWith("/") || p.endsWith('@')); }
 						
 						path = path.substring(path.lastIndexOf('/')+1);
 						const [possible_completions, index] = util.autocomplete(path, dir_index);

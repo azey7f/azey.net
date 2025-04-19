@@ -13,6 +13,12 @@ export default async (args=[]) => {
 
 	const path = args[0];
 	const processed_path = await process_path(path);
+
+	if (processed_path.endsWith('@')) {
+		window.location.href = "https://"+processed_path.slice(processed_path.lastIndexOf("/"),-1);
+		return;
+	}
+
 	await use_index(processed_path, async (index) => {
 		window.history.replaceState(null, "", processed_path+"/");
 		window.working_directory = processed_path;
