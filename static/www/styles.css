@@ -1,6 +1,6 @@
 /* banners */
 .under-construction-banner {
-	background-image: url(/static/under_construction_moving.gif);
+	background-image: url(/www/img/under_construction_moving.gif);
 	background-repeat: repeat-x;
 	background-size: contain;
 	image-rendering: pixelated;
@@ -24,7 +24,7 @@ body {
 	overflow-y: scroll;
 	overscroll-behavior: none;
 
-	background-image: url(/static/bg.gif); 
+	background-image: url(/www/img/bg.gif); 
 	background-repeat: repeat;
 	background-attachment: fixed;
 	image-rendering: pixelated;
@@ -51,31 +51,66 @@ body {
 	margin: 2em auto;
 
 	outline: none;
-	border: 1.5px solid;
+	border: 1.5pt solid;
         border-image: linear-gradient(to bottom right, #33ccff, #cc33ff) 1;
-	box-shadow: 0 0 10px #9ecaed;
+	box-shadow: 0 0 10pt #9ecaed;
 }
 
 /* terminal */
+input#dummy-input {
+	position: fixed;
+	left: -200vw;
+}
 ul#terminal {
 	height: 45vh;
 	margin: 1em;
 
 	overflow-x: hidden;
 	overflow-y: scroll;
+	overflow-wrap: break-word;
 	overscroll-behavior: none;
 
-	color: #fff;
-	text-shadow: 0 0 6px white;
+	color: #eee;
+	text-shadow: 0 0 6pt white;
 
 	font-family: monospace;
 	font-size: 12pt;
 
 	list-style-type: none;
 	padding-left: 0;
+
 }
-li.spaced {
+ul#terminal > li {
+	white-space: pre-wrap;
+	min-height: 1em
+}
+ul#terminal > li.nowrap {
+	white-space: pre;
+}
+ul#terminal > li.spaced {
 	margin: 0.8em 0;
+}
+
+span#cursor.s {
+	color: #000;
+	background-color: #fff;
+	box-shadow: 0 0 5pt white
+}
+
+span.prompt > span.user,
+span.prompt > span.dir {
+	color: #33ccff;
+	text-shadow: 0 0 6pt #33ccff;
+}
+span.input > span.cmd,
+span.input-history > span.cmd {
+	color: #3d5bf5;
+	text-shadow: 0 0 6pt #3d5bf5;
+}
+span.input > span.args,
+span.input-history > span.args {
+	color: #33ccff;
+	text-shadow: 0 0 6pt #33ccff;
 }
 
 /* badges */
@@ -93,7 +128,7 @@ footer.window {
 a.footer { text-decoration: none; }
 p.footer {
 	color: #fff;
-	text-shadow: 0 0 3px white;
+	text-shadow: 0 0 3pt white;
 
 	padding: 0;
 	margin: 1em 0 0 0;
@@ -101,3 +136,4 @@ p.footer {
 	font-family: monospace;
 	font-size: 8pt;
 }
+.inc-button { background: url(//incr.easrng.net/bg.gif) }
