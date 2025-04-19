@@ -9,35 +9,31 @@ import cmds from './commands/meta.js';
 // main
 (async () => {
 	const commands = Object.fromEntries(await Promise.all(
-        	(cmds.concat([ "help" ])).map(async (f) => [f, (await import(`./commands/${f}.js`)).default])
+		(cmds.concat([ "help" ])).map(async (f) => [f, (await import(`./commands/${f}.js`)).default])
 	));
 
-	util.set_title();
-	out.newline();
-	out.prompt();
+	const setup_term = async () => {
+		// ^ called after setting up event listeners
+		util.set_title();
+		out.clear();
 
-	if (window.working_directory == "/") {
-		window.term_locked = true;
-		window.term_selected = true;
+		if (window.working_directory == "/") {
+			window.term_locked = true;
+			window.selection_locked = true;
+			window.term_selected = true;
 
-		const manual_typing = { delay:50, random_delay:120, autostyle:true };
+			await sleep(500);
+			await out.simulate_typing("cd ~");
+			out.simulate_key("Enter");
 
-		await sleep(500);
-		Object.assign(manual_typing, { stdout:out.get_input() })
-		await out.println("cd ~", manual_typing);
-		await commands.cd();
-		out.prompt();
+			await sleep(500);
+			await out.simulate_typing("help");
+			out.simulate_key("Enter");
 
-		await sleep(500);
-		Object.assign(manual_typing, { stdout:out.get_input() })
-		await out.println("help", manual_typing);
-		await commands.help();
-		out.prompt();
-
-		window.term_locked = false;
+			window.term_locked = false;
+			window.selection_locked = false;
+		}
 	}
-
-	out.add_styling(out.get_input());
 
 	window.addEventListener("change", (e) => e.preventDefault());
 	window.addEventListener("keyup", (e) => e.preventDefault());
@@ -52,7 +48,8 @@ import cmds from './commands/meta.js';
 			dummyinput.blur();
 			dummyinput.focus();
 
- 			if (window.term_locked) {
+			if (window.term_locked && event.code != -1) {
+				// event.code == -1 set by out.simulate_typing()
 				if (event.ctrlKey && event.key.toLowerCase() == 'c') { window.stop_print = true }
 				return;
 			}
@@ -115,7 +112,7 @@ import cmds from './commands/meta.js';
 							out.del(input, window.cursor_pos-1, window.cursor_pos, 1)
 						}
 						break;
-	
+
 					// cmd history
 					} case "ArrowUp": {
 						const history = document.getElementsByClassName("input-history");
@@ -288,4 +285,6 @@ import cmds from './commands/meta.js';
 			out.add_styling(out.get_input());
 		}
 	}, true);
+
+	await setup_term();
 })();

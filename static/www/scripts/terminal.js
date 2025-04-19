@@ -99,6 +99,21 @@ export async function print_all(str, {
 	return true;
 }
 
+export function simulate_key(key) {
+	terminal.dispatchEvent(new KeyboardEvent("keydown", {key, code:-1}));
+}
+export async function simulate_typing(str, {
+	delay=50,
+	random_delay=120
+}={}) {
+	for (const char of str) {
+		simulate_key(char);
+		if (delay != 0) {
+			await sleep(delay + Math.floor(Math.random() * random_delay));
+		}
+	}
+}
+
 // input
 export function prompt() {
 	let pwd = window.working_directory.replace(/^\/root/, "~");
@@ -188,6 +203,7 @@ export function style_cursor() {
 
 export function select(event) {
 	event.stopPropagation();
+	if (window.selection_locked) return;
 	if (!window.term_locked) document.getElementById("dummy-input").focus();
 	if (!window.term_selected) {
 		style_cursor();
@@ -195,6 +211,7 @@ export function select(event) {
 	}
 }
 export function deselect() {
+	if (window.selection_locked) return;
 	if (window.term_selected) {
 		window.term_selected = false;
 		if (document.getElementById("cursor") != null) document.getElementById("cursor").className = "";
