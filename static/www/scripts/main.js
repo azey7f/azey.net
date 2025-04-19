@@ -72,6 +72,8 @@ import cmds from './commands/meta.js';
 					input.innerHTML += '^C';
 					out.newline();
 					out.prompt();
+
+					window.stop_print = true;
 					break;
 				} case 'v': {
 					// paste
@@ -147,7 +149,6 @@ import cmds from './commands/meta.js';
 				out.add_styling(input, true);
 
 				const [cmd, ...args] = input.innerText
-					.slice(0, window.cursor_pos)
 					.trim()
 					.replace(/ +/g, " ")
 					.split(" ");
