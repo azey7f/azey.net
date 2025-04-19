@@ -8,7 +8,7 @@ import cmds from './commands/meta.js';
 
 // main
 (async () => {
-	const commands = Object.fromEntries(await Promise.all(
+	window.commands = Object.fromEntries(await Promise.all(
 		(cmds.concat([ "help" ])).map(async (f) => [f, (await import(`./commands/${f}.js`)).default])
 	));
 
@@ -154,10 +154,10 @@ import cmds from './commands/meta.js';
 				out.newline();
 
 				if (cmd != "") {
-					if (!(cmd in commands)) {
+					if (!(cmd in window.commands)) {
 						await out.println(`${cmd}: command not found`);
 					} else {
-						await commands[cmd](args);
+						await window.commands[cmd](args);
 					}
 				}
 
@@ -175,13 +175,12 @@ import cmds from './commands/meta.js';
 					(args.length == 0 && window.cursor_pos == input.innerText.search(/\s+$/)) ||
 					window.cursor_pos - input.innerText.search(/\S|$/) <= cmd.length
 				) {
-					const command_list = Object.keys(commands);
+					const command_list = Object.keys(window.commands);
 					if (command_list.includes(cmd)) {
 						++window.cursor_pos;
 						if (window.cursor_pos >= input.innerText.length) input.innerHTML += " ";
 					} else {
 						// command autocomplete
-
 						const sliced = cmd.slice(0, window.cursor_pos)
 						let [possible_completions, index] = util.autocomplete(sliced, command_list);
 
@@ -233,7 +232,7 @@ import cmds from './commands/meta.js';
 							const cursor_pos = window.cursor_pos
 
 							out.newline();
-							await commands.ls([word]);
+							await window.commands.ls([word]);
 							out.prompt();
 
 							out.get_input().innerText = input.innerText;

@@ -180,9 +180,10 @@ export function add_styling(stdout, no_cursor=false) {
 	} else {
 		const [cmd, ...others] = str.slice(first_nonwhitespace).split(" ");
 
+		const cmd_style = Object.keys(window.commands).includes(cmd.trim()) ? "cmd" : "cmd-unmatched";
 		const parts = [
 			str.slice(0, first_nonwhitespace),
-			'<span class="cmd">',
+			`<span class="${cmd_style}">`,
 			cmd + " ",
 			'</span><span class="args">',
 			others.join(" "),

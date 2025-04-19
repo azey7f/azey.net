@@ -79,6 +79,7 @@ ul#terminal {
 	/*text-shadow: 0 0 6pt white;*/
 
 	font-family: custom-tty;
+	font-smooth: never;
 	font-size: 12pt;
 
 	list-style-type: none;
@@ -102,18 +103,10 @@ span#cursor.s {
 	/*box-shadow: 0 0 5pt white*/
 }
 
-span.user, span.dir {
-	color: #33ccff;
-	/*text-shadow: 0 0 6pt #33ccff;*/
-}
-span.cmd {
-	color: #3d5bf5;
-	/*text-shadow: 0 0 6pt #3d5bf5;*/
-}
-span.args {
-	color: #33ccff;
-	/*text-shadow: 0 0 6pt #33ccff;*/
-}
+span.user, span.dir { color: #33ccff; }
+span.cmd-unmatched { color: #b6193c; }
+span.cmd { color: #3d5bf5; }
+span.args { color: #33ccff; }
 
 /* badges */
 footer.window {
@@ -133,9 +126,10 @@ p.footer {
 	/*text-shadow: 0 0 3pt white;*/
 
 	padding: 0;
-	margin: 1em 0 0 0;
+	margin: 0;
 
 	font-family: custom-tty;
-	font-size: 10pt;
+	font-smooth: never;
+	font-size: 11pt;
 }
 .inc-button { background: url(//incr.easrng.net/bg.gif) }
