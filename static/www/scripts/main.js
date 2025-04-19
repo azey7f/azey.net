@@ -1,3 +1,5 @@
+import './setup.js';
+
 import { sleep } from './util.js';
 import * as util from './util.js';
 import * as out from './terminal.js';
@@ -9,15 +11,6 @@ import cmds from './commands/meta.js';
 	const commands = Object.fromEntries(await Promise.all(
         	(cmds.concat([ "help" ])).map(async (f) => [f, (await import(`./commands/${f}.js`)).default])
 	));
-
-	window.terminal = document.getElementById("terminal");
-	window.working_directory = location.pathname;
-	window.term_locked = false;
-	window.cursor_pos = 0;
-
-	window.history_current = 0;
-	window.history_saved = "";
-	window.history_cursor_pos = 0;
 
 	util.set_title();
 	out.newline();

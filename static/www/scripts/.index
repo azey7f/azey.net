@@ -1,4 +1,5 @@
 commands/
 main.js
+setup.js
 terminal.js
 util.js

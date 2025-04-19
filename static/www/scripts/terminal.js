@@ -115,7 +115,7 @@ export function prompt() {
 		// bash-style:
 		// `<span class="prompt">[root@${window.location.hostname}:${pwd}]$ </span><span class="input"></span>`;
 		// fish-style:
-		`<span class="prompt"><span class="user">root</span>@${window.location.hostname} <span class="dir">${pwd}</span>> </span><span class="input"></span>`;
+		`<span class="prompt"><span class="user">root</span>@${window.location.hostname} <span class="dir">${pwd}</span>&gt; </span><span class="input"></span>`;
 	terminal.scrollTop = terminal.scrollHeight;
 }
 
