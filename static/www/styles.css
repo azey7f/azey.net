@@ -16,6 +16,11 @@
 .bottom { bottom:0; }
 
 /* main */
+@font-face {
+  font-family: custom-tty;
+  src: url(/www/fonts/WebPlus_IBM_VGA_8x16.woff);
+  /* https://int10h.org */
+}
 body {
 	width: 100vw;
 	height: auto;
@@ -71,9 +76,9 @@ ul#terminal {
 	overscroll-behavior: none;
 
 	color: #eee;
-	text-shadow: 0 0 6pt white;
+	/*text-shadow: 0 0 6pt white;*/
 
-	font-family: monospace;
+	font-family: custom-tty;
 	font-size: 12pt;
 
 	list-style-type: none;
@@ -94,20 +99,20 @@ ul#terminal > li.spaced {
 span#cursor.s {
 	color: #000;
 	background-color: #fff;
-	box-shadow: 0 0 5pt white
+	/*box-shadow: 0 0 5pt white*/
 }
 
 span.user, span.dir {
 	color: #33ccff;
-	text-shadow: 0 0 6pt #33ccff;
+	/*text-shadow: 0 0 6pt #33ccff;*/
 }
 span.cmd {
 	color: #3d5bf5;
-	text-shadow: 0 0 6pt #3d5bf5;
+	/*text-shadow: 0 0 6pt #3d5bf5;*/
 }
 span.args {
 	color: #33ccff;
-	text-shadow: 0 0 6pt #33ccff;
+	/*text-shadow: 0 0 6pt #33ccff;*/
 }
 
 /* badges */
@@ -125,12 +130,12 @@ footer.window {
 a.footer { text-decoration: none; }
 p.footer {
 	color: #fff;
-	text-shadow: 0 0 3pt white;
+	/*text-shadow: 0 0 3pt white;*/
 
 	padding: 0;
 	margin: 1em 0 0 0;
 
-	font-family: monospace;
-	font-size: 8pt;
+	font-family: custom-tty;
+	font-size: 10pt;
 }
 .inc-button { background: url(//incr.easrng.net/bg.gif) }
