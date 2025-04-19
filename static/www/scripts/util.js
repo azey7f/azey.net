@@ -54,7 +54,7 @@ export async function print_path(p) {
 	} else await out.println(p);
 }
 
-export async function process_path(path, is_dir=true, remove_trailing_slashes=true) {
+export async function process_path(path, remove_trailing_slashes=true) {
 	path = path.trim();
 
 	// special cases
@@ -73,8 +73,9 @@ export async function process_path(path, is_dir=true, remove_trailing_slashes=tr
 		path = path.replace(/\/?[^\/]*\/?\.\.\/?/, "/")
 	}
 
-        if (is_dir) {
-		while (path.endsWith("/.")) { path = path.replace(/\/\.$/, ""); }
+	// handle dirs
+	if ((await fetch(path.replace(/\/+$/, "") + "/.index")).ok) {
+		if (path.endsWith("/.")) path = path.replace(/\/\.$/, "");
 		if (remove_trailing_slashes) path = path.replace(/\/+$/, "");
 	}
 

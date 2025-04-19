@@ -221,7 +221,7 @@ import cmds from './commands/meta.js';
 
 					const word = str.substring(start, end).trim();
 
-					let path = await util.process_path(word, true, false);
+					let path = await util.process_path(word, false);
 					if (path == null) {
 						window.term_locked = false;
 						break;
