@@ -152,7 +152,7 @@ export function prompt() {
 		// bash-style:
 		// `<span class="prompt">[root@${window.location.hostname}:${pwd}]$ </span><span class="input"></span>`;
 		// fish-style:
-		`<span class="prompt"><span class="user">root</span>@${window.location.hostname} <span class="dir">${pwd}</span>&gt; </span><span class="input"></span>`;
+		`<span class="prompt"><span class="cyan">root</span>@${window.location.hostname} <span class="cyan">${pwd}</span>&gt; </span><span class="input"></span>`;
 	terminal.scrollTop = terminal.scrollHeight;
 }
 
@@ -180,12 +180,12 @@ export function add_styling(stdout, no_cursor=false) {
 	} else {
 		const [cmd, ...others] = str.slice(first_nonwhitespace).split(" ");
 
-		const cmd_style = Object.keys(window.commands).includes(cmd.trim()) ? "cmd" : "cmd-unmatched";
+		const cmd_style = Object.keys(window.commands).includes(cmd.trim()) ? "blue" : "red";
 		const parts = [
 			str.slice(0, first_nonwhitespace),
 			`<span class="${cmd_style}">`,
 			cmd + " ",
-			'</span><span class="args">',
+			'</span><span class="cyan">',
 			others.join(" "),
 			'</span>',
 		];

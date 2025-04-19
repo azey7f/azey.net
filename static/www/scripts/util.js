@@ -42,6 +42,18 @@ export async function use_index(path, success_func, err) {
 }
 
 // path operations
+export async function print_path(p) {
+	if (p.endsWith('/')) {
+		await out.print(p.slice(0,-1), { html_open:'<span class="blue">', html_close:"</span>" });
+		await out.println('/')
+	} else if (p.endsWith('@')) {
+		const dir_end = p.lastIndexOf('/') + 1;
+		await out.print(p.slice(0,dir_end));
+		await out.print(p.slice(dir_end,-1), { html_open:'<span class="cyan">', html_close:"</span>" });
+		await out.println('@')
+	} else await out.println(p);
+}
+
 export async function process_path(path, is_dir=true, remove_trailing_slashes=true) {
 	path = path.trim();
 

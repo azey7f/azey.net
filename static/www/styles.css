@@ -103,10 +103,9 @@ span#cursor.s {
 	/*box-shadow: 0 0 5pt white*/
 }
 
-span.user, span.dir { color: #33ccff; }
-span.cmd-unmatched { color: #b6193c; }
-span.cmd { color: #3d5bf5; }
-span.args { color: #33ccff; }
+span.cyan { color: #33ccff; }
+span.blue { color: #3d5bf5; }
+span.red { color: #b6193c; }
 
 /* badges */
 footer.window {

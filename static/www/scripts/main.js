@@ -256,7 +256,7 @@ import cmds from './commands/meta.js';
 							out.add_styling(input, true);
 							out.newline();
 							for (const completion of possible_completions) {
-								await out.println(path+completion);
+								await util.print_path(path+completion);
 							}
 							out.prompt();
 
