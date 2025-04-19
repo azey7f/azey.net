@@ -187,6 +187,7 @@ import cmds from './commands/meta.js';
 						if (possible_completions != null) {
 							if (index == 0) {
 								// no common autocompletion
+								input.innerHTML = input.innerText;
 								await out.add_styling(input, true);
 								out.newline();
 								for (const completion of possible_completions) {
