@@ -190,9 +190,9 @@ export function add_styling(stdout, no_cursor=false) {
 		];
 
 		if (!no_cursor) {
-			let cursor_adjusted = window.cursor_pos-first_nonwhitespace;
-			for (let i=2; i < parts.length; ++i) {
-				if ([2, 4].includes(i)) {
+			let cursor_adjusted = window.cursor_pos;
+			for (let i=0; i < parts.length; ++i) {
+				if (i%2==0) {
 					if (cursor_adjusted >= parts[i].length) {
 						cursor_adjusted -= parts[i].length;
 					} else {
