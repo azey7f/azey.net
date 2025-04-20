@@ -34,7 +34,7 @@ export function autocomplete(str, completions) {
 
 // .index file functions
 export async function use_index(path, success_func, err) {
-	let index = await fetch(path+"/.index");
+	let index = await fetch(path+".index");
 	if (index.ok) { return await success_func((await index.text()).trim()); }
 
 	if (err) { await out.println(err); }
@@ -60,27 +60,46 @@ export async function print_path(p) {
 export async function process_path(path, remove_trailing_slashes=true) {
 	path = path.trim();
 
-	// special cases
-	if (path == ".") { return window.working_directory; }
-        if (path.startsWith("~")) { path = path.replace("~", "/root"); }
-
-	// make path absolute
-	if (!path.startsWith("/")) { path = `${window.working_directory}/${path}`; }
-	path = path.replace(/\/+/g, "/");
-
-	// handle relatives
-	while (path.includes("/./")) {
-		path = path.replace(/\/\.\//g, "/");
-	}
-	while (path.includes("..")) {
-		path = path.replace(/\/?[^\/]*\/?\.\.\/?/, "/")
+	let processed_path;
+	switch (path.charAt()) {
+		case '/':
+			processed_path = "/";
+			path = path.slice(1);
+			break;
+		case '~':
+			processed_path = "/root/";
+			path = path.slice(1);
+			break;
+		default:  processed_path = window.working_directory; break;
 	}
 
-	// handle dirs
-	if ((await fetch(path.replace(/\/+$/, "") + "/.index")).ok) {
-		if (path.endsWith("/.")) path = path.replace(/\/\.$/, "");
-		if (remove_trailing_slashes) path = path.replace(/\/+$/, "");
+	const p = path.split('/');
+	for (let i=0; i < p.length; ++i) {
+		let new_path;
+		switch (p[i]) {
+			case '':
+			case '.':
+				continue;
+			case '..': {
+				if (processed_path == "/") continue;
+				new_path = processed_path.slice(0, processed_path.lastIndexOf('/', processed_path.length-2));
+				break;
+			} default: new_path = processed_path + p[i]; break;
+		}
+
+		const is_dir = (await fetch(new_path + "/.index")).ok;
+		if (!is_dir && i == p.length-1) {
+			/*
+			if (!(await fetch(new_path)).ok || i != p.length-1) {
+				// path doesn't exist or goes through a file
+				// TODO: error handling
+				processed_path = new_path + '/';
+			} else {
+				processed_path = new_path;
+			}*/
+			processed_path = new_path;
+		} else processed_path = new_path + '/';
 	}
 
-	return path;
+	return processed_path;
 }

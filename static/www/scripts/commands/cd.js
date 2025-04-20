@@ -20,7 +20,7 @@ export default async (args=[]) => {
 	}
 
 	await use_index(processed_path, async (index) => {
-		window.history.replaceState(null, "", processed_path+"/");
+		window.history.replaceState(null, "", processed_path);
 		window.working_directory = processed_path;
 		set_title();
 	}, `cd: The directory “${path}” does not exist`);

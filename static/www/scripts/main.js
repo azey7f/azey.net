@@ -226,7 +226,7 @@ import cmds from './commands/meta.js';
 						break;
 					}
 
-					await util.use_index(path.substring(0, path.lastIndexOf('/')), async (dir_index) => {
+					await util.use_index(path.substring(0, path.lastIndexOf('/')+1), async (dir_index) => {
 						dir_index = dir_index.trim().split(/\r?\n/);
 						if (!word.length || dir_index.includes(word)) {
 							out.add_styling(input, true);
