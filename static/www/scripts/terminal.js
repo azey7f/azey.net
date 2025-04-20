@@ -220,7 +220,7 @@ export function style_cursor() {
 }
 
 export function select(event) {
-	event.stopPropagation();
+	if (event) event.stopPropagation();
 	if (window.selection_locked) return;
 	if (!window.term_locked) document.getElementById("dummy-input").focus();
 	if (!window.term_selected) {

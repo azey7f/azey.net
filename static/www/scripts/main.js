@@ -33,6 +33,8 @@ import cmds from './commands/meta.js';
 			window.term_locked = false;
 			window.selection_locked = false;
 		}
+
+		out.select();
 	}
 
 	window.addEventListener("change", (e) => e.preventDefault());
@@ -44,15 +46,15 @@ import cmds from './commands/meta.js';
 
 		event.preventDefault();
 
-		const dummyinput = document.getElementById("dummy-input");
-		dummyinput.blur();
-		dummyinput.focus();
-
 		if (window.term_locked && event.code != -1) {
 			// event.code == -1 set by out.simulate_typing()
 			if (event.ctrlKey && event.key.toLowerCase() == 'c') { window.stop_print = true }
 			return;
 		}
+
+		const dummyinput = document.getElementById("dummy-input");
+		dummyinput.blur();
+		dummyinput.focus();
 
 		let input = out.get_input();
 
