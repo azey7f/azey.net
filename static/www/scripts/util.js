@@ -49,7 +49,10 @@ export async function print_path(p) {
 	} else if (p.endsWith('@')) {
 		const dir_end = p.lastIndexOf('/') + 1;
 		await out.print(p.slice(0,dir_end));
-		await out.print(p.slice(dir_end,-1), { html_open:'<span class="cyan">', html_close:"</span>" });
+		await out.print(p.slice(dir_end,-1), {
+			html_open:`<a class="cyan" href="https://${p.slice(dir_end,-1)}">`,
+			html_close:"</a>"
+		});
 		await out.println('@')
 	} else await out.println(p);
 }

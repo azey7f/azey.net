@@ -12,7 +12,7 @@ export default async (args=[]) => {
 
 		if (processed_path.endsWith('@')) {
 			const url = "https://"+processed_path.slice(processed_path.lastIndexOf("/"),-1);
-			await out.println(url, { html_open:`<a href="${url}">`, html_close:"</a>" });
+			await out.println(url, { html_open:`<a class="cyan" href="${url}">`, html_close:"</a>" });
 			continue;
 		}
 

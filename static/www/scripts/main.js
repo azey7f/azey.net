@@ -150,8 +150,7 @@ import cmds from './commands/meta.js';
 
 				const [cmd, ...args] = input.innerText
 					.trim()
-					.replace(/ +/g, " ")
-					.split(" ");
+					.split(/ +/);
 				out.newline();
 
 				if (cmd != "") {
