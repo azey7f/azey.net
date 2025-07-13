@@ -1,0 +1,36 @@
+[
+        {"f": "newline"},
+        {"f": "sleep", "args": [500]},
+
+        {"f": "print_all", "args": [
+		[
+			"They do not act like Nazis",
+			"when they raid your house at night.",
+			"They take you when you least expect",
+			"and can't put up a fight.",
+			"",
+			"They do not dress like Nazis",
+			"with an achtung and a schell.",
+			"As they cuff your hands and usher you",
+			"off to certain hell.",
+			"",
+			"They do not travel like Nazis",
+			"who put victims on a train.",
+			"They send you off to a labor camp",
+			"inside an airplane.",
+			"",
+			"And in the camp your story ends",
+			"as you waste away and toil.",
+			"They did not seem like Nazis",
+			"who screamed for blood and soil.",
+			"",
+			"So when you ask the Germans",
+			"why didn't you stop them then.",
+			"They'll say \"we didn't know that monsters",
+			"could look like normal men.\""
+		],
+                { "delay":750, "char_delay":60, "stoppable":true, "reset_stop":false }
+        ]},
+
+        {"f": "sleep", "args": [150]}
+]

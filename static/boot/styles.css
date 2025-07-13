@@ -1,0 +1,142 @@
+:root {
+  --fb-bg: #000;
+  --fb-fg: #ddd;
+}
+
+/* generic */
+.cyan { color: #33ccff; }
+.blue { color: #3d5bf5; }
+.red { color: #b6193c; }
+
+/* "hardware" */
+@font-face {
+  font-family: custom-tty;
+  src: url(/boot/WebPlus_IBM_VGA_8x16.woff);
+  /* https://int10h.org */
+}
+body {
+	width: 100%;
+	height: 100%;
+
+	font-family: custom-tty, monospace;
+	font-size: 16px;
+	line-height: 16px;
+
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+
+	color: var(--fb-fg);
+	background-color: var(--fb-bg);
+}
+
+/* bootloader */
+div.bootmenu {
+	height: fit-content;
+	min-width: fit-content;
+	width: 35%;
+
+	overflow: visible;
+	margin: auto;
+
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+div.bootmenu > ul {
+	margin: 1em;
+	text-align: center;
+	white-space: nowrap;
+
+	list-style-type: none;
+	padding-left: 0;
+}
+
+.selected {
+	color: var(--fb-bg);
+	background-color: var(--fb-fg);
+}
+
+/* kernel */
+main#framebuffer {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	bottom: 0;
+}
+ul[id^='tty'], p#early-printk {
+	overflow: hidden; /* TTYs don't scroll, sorry :c */
+	overflow-wrap: anywhere;
+	white-space: pre-wrap;
+
+	font-family: custom-tty, monospace;
+	font-size: 16px;
+	line-height: 16px;
+
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	bottom: 0;
+}
+
+#cursor {
+	color: var(--fb-bg);
+	background-color: var(--fb-fg);
+}
+
+
+/***************************************/
+/* banners */
+.under-construction-banner {
+	background-image: url(/www/img/under_construction_moving.gif);
+	background-repeat: repeat-x;
+	background-size: contain;
+	image-rendering: pixelated;
+
+	width: 100%;
+	height: 5%;
+
+	position: fixed; 
+	left: 0;
+}
+/* here instead of inline because CSP + I can't be bothered with nonces */
+.top { top:0; }
+.bottom { bottom:0; }
+
+/* terminal */
+input#dummy-input {
+	position: fixed;
+	left: -200vw;
+}
+ul#terminal {
+	height: 45vh;
+	margin: 1em;
+
+	overflow-x: hidden;
+	overflow-y: scroll;
+	overflow-wrap: break-word;
+	overscroll-behavior: none;
+
+	color: #eee;
+	/*text-shadow: 0 0 6pt white;*/
+
+	list-style-type: none;
+	padding-left: 0;
+
+}
+ul#terminal > li {
+	white-space: pre-wrap;
+	min-height: 1em
+}
+ul#terminal > li.nowrap {
+	white-space: pre;
+}
+ul#terminal > li.spaced {
+	margin: 0.8em 0;
+}
