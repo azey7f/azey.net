@@ -8,6 +8,16 @@ import { __syscall, syscalls } from './syscall.js';
 
 // functions
 export async function spawn(ppid, path, argv, envp, waitsab) {
+	if (!window.isSecureContext) {
+		await printk("Kernel error: can't use SharedArrayBuffer: document is not in a secure context");
+		return EGENERIC;
+	}
+	if (!window.crossOriginIsolated) {
+		await printk("Kernel error: can't use SharedArrayBuffer: document is not cross-origin isolated");
+		await printk("^^^ this seems to happen on android with firefox-based browsers, no clue why :c");
+		return EGENERIC;
+	}
+
 	const fd = await vfs.open(0, path, { READ: true });
 	if (fd < 0) return fd;
 
