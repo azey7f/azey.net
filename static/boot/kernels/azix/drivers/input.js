@@ -1,3 +1,4 @@
+import { printk } from '../util.js';
 import * as vfs from '../vfs.js';
 
 // module stuff
@@ -9,9 +10,14 @@ export function init() {
 	controller = new AbortController();
 
 	window.fb.addEventListener('click', select, { signal: controller.signal });
+
 	window.addEventListener('keydown', (event) => {
 		if (event.defaultPrevented) return;
 		if (event.key.match(/F[0-9]+/)) return; // don't process function keys
+
+		// android keyboard, inputs are processed via textInput
+		// android virtual keyboards aren't that great at controlling TTYs, but inputting a command and pressing enter should at least work
+		if (event.keyCode === 229) return;
 
 		if (dummy_input) {
 			dummy_input.blur();
@@ -40,6 +46,24 @@ export function init() {
 				key: event.key,
 				code: event.keyCode
 			})+'\n');
+	}, { signal: controller.signal });
+
+	// android input processing
+	window.addEventListener('textInput', (event) => {
+		const ret = {
+			alt: 0, ctrl: 0,
+			shift: 0, meta: 0,
+			key: event.data,
+			keyCode: event.data.charAt(),
+		};
+		if (ret.code <= 90 && ret.code >= 65) { // is uppercase letter
+			ret.shift = 1;
+			ret.key = ret.key.toLowerCase();
+			ret.code += 0x20;
+		}
+
+		for (const buf of buffers)
+			if (buf !== undefined) tryadd(buf, JSON.stringify(ret)+'\n');
 	}, { signal: controller.signal });
 	return 0;
 }
