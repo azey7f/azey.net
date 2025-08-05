@@ -3,7 +3,7 @@
 // only difference is that this doesn't take argc for obvious reasons
 
 import * as sys from '../sys.js';
-import { fprint } from '../stdio.js';
+import { fprint } from '../stdio/fprint.js';
 
 self.optarg = undefined;
 self.optind = 1;

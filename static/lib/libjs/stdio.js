@@ -1,5 +1,4 @@
 import * as sys from './sys.js';
-import { sdec } from './util.js';
 
 self.BUFSIZ = 4096;
 

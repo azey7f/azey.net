@@ -9,36 +9,32 @@ import { __syscall, syscalls } from './syscall.js';
 // functions
 export async function spawn(ppid, path, argv, envp, waitsab) {
 	if (!window.isSecureContext) {
-		await printk("Kernel error: can't use SharedArrayBuffer: document is not in a secure context");
+		await printk("spawn: can't use SharedArrayBuffer: document is not in a secure context");
 		return EGENERIC;
 	}
 	if (!window.crossOriginIsolated) {
-		await printk("Kernel error: can't use SharedArrayBuffer: document is not cross-origin isolated");
-		await printk("^^^ this seems to happen on android with firefox-based browsers, no clue why :c");
+		await printk("spawn: can't use SharedArrayBuffer: document is not cross-origin isolated");
+		await printk("^^^ this seems to happen on android with firefox-based browsers sometimes, no clue why :c");
 		return EGENERIC;
 	}
 
-	const fd = await vfs.open(0, path, { READ: true });
-	if (fd < 0) return fd;
+	// spawn worker
+	const urls = await __link(path);
+	if (urls < 0) return urls;
 
-	const js = await vfs.read(0, fd, Number.MAX_SAFE_INTEGER);
-	if (js < 0) return js;
-
-	await vfs.close(0, fd);
-
-	const url = URL.createObjectURL(new Blob([
-		// prepend href to import paths, needed since the module is loaded as a blob
-		js.replaceAll(/(import.*?)'\/?(.*?)'(;.*?\n)/gs, `$1'${window.location.href}$2'$3`)
-	], {type: 'text/javascript'}));
 	let worker;
-	try { worker = new Worker(url, { type: 'module' }); } catch (err) {
+	try {
+		worker = new Worker(urls[0], { type: 'module' });
+	} catch (err) {
 		await printk(`spawn: failed to start worker: ${err.message}`);
+		for (const url of urls) URL.revokeObjectURL(url);
 		return EGENERIC;
-	} finally { URL.revokeObjectURL(url) };
+	}
 
 	const sysret = new SharedArrayBuffer(4); // 4 bytes since Atomics use an Int32Array
 	const pid = await __create_process(ppid, path, argv, envp, worker, new Int32Array(sysret));
 
+	// error handlers, wait for waitsab
 	worker.onmessage = (event) => __syscall(pid, event.data);
 	worker.onerror = (err) => {
 		printk(`process PID ${pid} error: ${err.message}`);
@@ -65,6 +61,10 @@ export async function spawn(ppid, path, argv, envp, waitsab) {
 		})();
 	} else worker.postMessage({ argv, envp, sysret });
 
+	// cleanup
+	setTimeout(() => {
+		for (const url of urls) URL.revokeObjectURL(url)
+	}, 1000);
 	return pid;
 }
 
@@ -173,4 +173,59 @@ export function __remove_pgroup(pgid) {
 		delete window.pses[window.pgrp[pgid].session.id];
 	delete window.pgrp[pgid];
 	return 0;
+}
+
+// __link: read and JIT "link" source files, recursively replaces imports with blob: URLs
+// returns an array of blob URLs, with the first one being the final processed program
+// __link_cache: stores already processed blobs by path, speeds stuff up
+export let __link_cache = {};
+export function __link(path) {
+	const ret = __link_rec(path);
+	__link_cache = {};
+	return ret;
+};
+export async function __link_rec(path) {
+	const fd = await vfs.open(0, path, { READ: true });
+	if (fd < 0) return fd;
+
+	const js = await vfs.read(0, fd, Number.MAX_SAFE_INTEGER);
+	if (js < 0) return js;
+
+	const abspath = vfs.path(window.proc[0].files[fd].node);
+	if (abspath < 0) return abspath;
+
+	await vfs.close(0, fd);
+
+	// check cache
+	if (Object.hasOwn(__link_cache, abspath)) return [__link_cache[abspath]];
+
+	// iterate over all lines, match imports & recursively replace them with blob URLs
+	let blobURLs = [""];
+	const processed = await Promise.all(js.split('\n').map(async (line, i) => {
+		if (blobURLs < 0) return;
+
+		const match = line.match(/^([a-z][a-z])port(.*)(['"])(.*\.js)\3(.*)/);
+		if (match === null) return line + "\n";
+		// match = ["import _ from '/lib/whatever';", "im", " _ from ", "'", "/lib/whatever", ";"]
+
+		let ipath = match[4];
+		if (!ipath.startsWith('/')) {
+			// relative path
+			ipath = '/' + abspath.slice(0, abspath.lastIndexOf('/')+1) + ipath;
+		};
+
+		const urls = await __link_rec(ipath);
+		if (urls < 0) {
+			blobURLs = urls;
+			return await printk(`__link: failed with error: ${urls}`);
+		}
+
+		blobURLs = blobURLs.concat(urls);
+		return `${match[1]}port${match[2]}${match[3]}${urls[0]}${match[3]}${match[5]}\n`;
+	}));
+
+	if (!(blobURLs < 0)) {
+		__link_cache[abspath] = blobURLs[0] = URL.createObjectURL(new Blob(processed, {type: 'text/javascript'}));
+	}
+	return blobURLs;
 }

@@ -1,10 +1,7 @@
 import '/lib/libjs/std.js';
 import * as sys from '/lib/libjs/sys.js';
 import { strerror } from '/lib/libjs/util.js';
-import {
-	fprint, print, println,
-	fopen, fdopen, fclose, fread,
-} from '/lib/libjs/stdio.js';
+import { fprint, print, println, fopen, fdopen, fclose, fread } from '/lib/libjs/stdio.js';
 
 self.main = function(argv) {
 	if (argv.length === 1) argv.push('-');
