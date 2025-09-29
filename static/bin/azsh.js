@@ -10,7 +10,7 @@ let fpgid, fldisc;
 let cwd;
 
 const config = {
-	PATH: '/bin', // TODO: /etc/profile?
+	PATH: '/bin', // TODO
 };
 
 self.main = function(argv) {
@@ -88,8 +88,11 @@ self.main = function(argv) {
 
 		// get line
 		let line = '';
+		let curpos_received = false;
 		chget: for (let pos = 0;;) switch (typeof (ch = getch())) {
 			case 'object': // cursor position array, should only occur once
+				if (curpos_received) break; else curpos_received = true;
+
 				const [rows, cols] = ch;
 				if (cols > 0) print('\n');
 
@@ -269,7 +272,7 @@ self.main = function(argv) {
 				}
 
 				err(bin, 'command not found');
-				continue main;
+				break cmd;
 			}
 		}
 

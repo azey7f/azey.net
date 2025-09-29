@@ -90,6 +90,27 @@ ul[id^='tty'], p#early-printk {
 	background-color: var(--fb-fg);
 }
 
+/* userspace */
+/* TODO: make a cssfs driver? */
+.ui-background {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	bottom: 0;
+
+	overflow-x: hidden;
+	overflow-y: scroll;
+	overscroll-behavior: none;
+
+	background-image: url(/www/img/bg.gif); 
+	background-repeat: repeat;
+	background-attachment: fixed;
+	image-rendering: pixelated;
+}
+
+.z-100 {z-index: 100;}
+.z-200 {z-index: 200;}
+
 
 /***************************************/
 /* banners */

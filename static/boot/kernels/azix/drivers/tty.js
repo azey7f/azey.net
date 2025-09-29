@@ -7,7 +7,12 @@ import { signal } from '../proc.js';
 // module stuff
 export const name = "tty";
 export const depends_on = [ "input", "domfs" ];
-export const defaults = { input: '/dev/input', domfs: '/dev/dom' };
+export const defaults = {
+	input: '/dev/input',
+	domfs: '/dev/dom',
+	terminal: 'y', // if false the terminal emulator is disabled, no output is drawn and trying to open READ/WRITE returns EIO
+	               // 'y'/'n' instead of true/false because opts are passed as strings and !'false' === false. gods I hate JS
+};
 export function init() {
 	mounts = [];
 	buffer = new Array(4096);
@@ -33,22 +38,26 @@ let mounts;
 // index of currently selected tty
 let selected;
 let event_target;
+export function selected_index() { return selected; }
 export function select_tty(i) {
-	if (!mounts[i]) return;
+	if (!mounts[i]) return EINVAL;
 	return select(i, mounts[i].node);
 }
 async function select(dev, node) {
 	if (dev === selected) return;
 	selected = dev;
 
-	await vfs.close(0, 0); // printk fd
-	await __open_node(0, node, { WRITE: true });
+	if (mounts[dev].options.terminal === 'y') {
+		await vfs.close(0, 0); // printk fd
+		await __open_node(0, node, { WRITE: true });
+	}
 
 	for (const i in mounts)
 		await set_hidden(i, +i !== dev);
-	await draw();
+	//await draw();
 
 	event_target.dispatchEvent(new Event('select'));
+	return 0;
 }
 // FD of options.input
 let input_f;
@@ -56,6 +65,8 @@ let input_f;
 let buffer;
 // ring buffer impl
 function tryadd(item) {
+	if (mounts[selected].options.terminal !== 'y') return 0;
+
 	let f;
 	while (buffer.awaiting[selected].length > 0 && (f = buffer.awaiting[selected].pop()) === undefined);
 	if (f !== undefined) {
@@ -92,7 +103,7 @@ export const super_ops = {
 		const elem = await vfs.open(0, `${options.domfs}/ul id="tty${+device}"`, { WRITE: true, CREATE: true, TRUNCATE: true });
 		if (elem < 0) return elem;
 
-		const controller = new AbortController();
+		const controller = options.terminal === 'y' ? new AbortController() : null;
 		mounts[+device] = {
 			elem, controller,
 			options,
@@ -108,50 +119,53 @@ export const super_ops = {
 			width:  ~~(window.fb.offsetWidth/8),   // 8x16 px font, squiggly lines for integer division
 			height: ~~(window.fb.offsetHeight/16), // ^ ^^
 		};
-		mounts[+device].cwidth  = mounts[+device].width  * 3; // see mkempty() func definition
-		mounts[+device].cheight = mounts[+device].height * 3;
-		mounts[+device].buffer = mkempty(mounts[+device].width * mounts[+device].height);
 
-		buffer.awaiting[+device] = [];
+		if (options.terminal === 'y') {
+			mounts[+device].cwidth  = mounts[+device].width  * 3; // see mkempty() func definition
+			mounts[+device].cheight = mounts[+device].height * 3;
+			mounts[+device].buffer = mkempty(mounts[+device].width * mounts[+device].height);
 
-		addEventListener('resize', async (e) => {
-			const m = mounts[+device];
-			let new_w  = ~~(window.fb.offsetWidth/8);
-			let new_h = ~~(window.fb.offsetHeight/16);
+			buffer.awaiting[+device] = [];
 
-			if (new_w !== m.width || new_h !== m.height) {
-				m.width = new_w; m.height = new_h;
-				m.cwidth = new_w*3; m.cheight = new_h*3;
+			addEventListener('resize', async (e) => {
+				const m = mounts[+device];
+				let new_w  = ~~(window.fb.offsetWidth/8);
+				let new_h = ~~(window.fb.offsetHeight/16);
 
-				const new_buf = m.height * m.width * 3;
-				m.cursor = Math.min(m.cursor, new_buf);
+				if (new_w !== m.width || new_h !== m.height) {
+					m.width = new_w; m.height = new_h;
+					m.cwidth = new_w*3; m.cheight = new_h*3;
 
-				if (m.buffer.length > new_buf) {
-					const cutoff = m.buffer.length - new_buf;
-					if (m.cursor > m.buffer.length - cutoff)
-						m.buffer = m.buffer.slice(cutoff);
-					else m.buffer = m.buffer.slice(0, -cutoff);
-				} else m.buffer = m.buffer + mkempty((new_buf - m.buffer.length)/3);
-				// TODO: properly resize buffer?
-				// https://stackoverflow.com/a/60624182, slightly adapted
-				/*let lines = [];
-				for (let i = 0, l = m.buffer.length; i < l;)
-				    lines.push(m.buffer.substring(i, i+=m.width));
+					const new_buf = m.height * m.width * 3;
+					m.cursor = Math.min(m.cursor, new_buf);
 
-				m.buffer = lines.reduce((buf, l) => {
-					l = l.trimEnd();
-					if (m.width > l.length)
-					return buf + l + ' '.repeat(Math.max(0, m.width-l.length));
-				}, '');
-				*/
+					if (m.buffer.length > new_buf) {
+						const cutoff = m.buffer.length - new_buf;
+						if (m.cursor > m.buffer.length - cutoff)
+							m.buffer = m.buffer.slice(cutoff);
+						else m.buffer = m.buffer.slice(0, -cutoff);
+					} else m.buffer = m.buffer + mkempty((new_buf - m.buffer.length)/3);
+					// TODO: properly resize buffer?
+					// https://stackoverflow.com/a/60624182, slightly adapted
+					/*let lines = [];
+					for (let i = 0, l = m.buffer.length; i < l;)
+					    lines.push(m.buffer.substring(i, i+=m.width));
 
-				await draw();
+					m.buffer = lines.reduce((buf, l) => {
+						l = l.trimEnd();
+						if (m.width > l.length)
+						return buf + l + ' '.repeat(Math.max(0, m.width-l.length));
+					}, '');
+					*/
 
-				if (m.pgid) signal(-m.pgid, 'SIGWINCH');
-			}
-		}, { signal: controller.signal });
+					await draw();
 
-		if (!selected) {
+					if (m.pgid) signal(-m.pgid, 'SIGWINCH');
+				}
+			}, { signal: controller.signal });
+		}
+
+		if (!selected && options.terminal === 'y') {
 			const input = await vfs.open(0, options.input, { READ: true });
 			if (input < 0) return EIO;
 			input_f = input;
@@ -197,16 +211,18 @@ export const super_ops = {
 	},
 	__remount: () => EIMPL,
 
-	__umount: (device, node) => {
+	__umount: async (device, node) => {
 		if (+device === selected) return EBUSY;
 		if (mounts[+device].controller) mounts[+device].controller.abort();
-		const e = vfs.close(0, mounts[+device].elem);
+		const e = await vfs.close(0, mounts[+device].elem);
 		if (e < 0) return e;
-		delete mounts[+device];
 
-		for (let f; buffer.length > 0;)
-			if ((f = buffer.awaiting[+device].pop()) !== undefined) f(EGENERIC);
-		delete buffer.awaiting[+device];
+		if (mounts[+device].options.terminal === 'y') {
+			for (let f; buffer.awaiting[+device].length > 0;)
+				if ((f = buffer.awaiting[+device].pop()) !== undefined) f(EGENERIC);
+			delete buffer.awaiting[+device];
+		}
+		delete mounts[+device];
 		return 0;
 	},
 };
@@ -228,6 +244,8 @@ export const node_ops = {
 
 export const file_ops = {
 	__openf: (f, flags) => {
+		if (mounts[+f.node.superblock.device].options.terminal !== 'y' && (flags.READ || flags.WRITE)) return EIO;
+
 		++mounts[+f.node.superblock.device].refs;
 		return 0;
 	},
@@ -547,6 +565,7 @@ const escapeHtml = char => {
 
 async function draw() {
 	const m = mounts[selected];
+	if (m.options.terminal !== 'y') return 0;
 
 	const reopen_promise = vfs.reopen(0, m.elem); // truncate file
 
@@ -600,7 +619,7 @@ async function set_hidden(dev, hidden) {
 
 	await vfs.__rename_node(0, node, new_name);
 
-	const elem = await vfs.open(0, new_name, { WRITE: true, TRUNCATE: true });
+	const elem = await vfs.open(0, new_name, { WRITE: true });
 
 	if (elem < 0) return elem;
 	mounts[dev].elem = elem;

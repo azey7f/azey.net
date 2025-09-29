@@ -104,7 +104,9 @@ Node functions (`node_ops`):
     - if true, these should also be implemented:
         - `str? __tty_get(node, str attr)` - get TTY attrs
         - `0?   __tty_set(node, str attr, str value)` - set TTY attrs
-    - TTY attrs exposed by `ctty` in `/dev/tty/`:
+    - TTY attrs exposed by `ttyctl` in `/dev/tty/`:
+        - `ctty` - path to current process' controlling TTY
+        - `ftty` - index of currently focused TTY (VT)
         - `pgid` - foreground process group ID
         - `ldisc` - line discipline, either `n_tty`, `n_echo`, or `n_null`
 

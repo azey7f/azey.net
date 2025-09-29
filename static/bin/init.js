@@ -3,7 +3,7 @@ import { println } from '/lib/libjs/stdio.js';
 import { getopt, wait, strerror, isatty } from '/lib/libjs/util.js';
 import * as sys from '/lib/libjs/sys.js';
 
-let config = {
+const opts = {
 	TTYPREFIX: '/dev/tty',
 	CONSOLE_INIT: '/bin/getty.js',
 	LOG: '/proc/dmesg',
@@ -25,13 +25,13 @@ self.main = function(argv) {
 	while (self.optind < argv.length)
 		switch (getopt(argv, 'i:p:l:h') ) {
 			case 'p':
-				config.TTYPREFIX = self.optarg;
+				opts.TTYPREFIX = self.optarg;
 				break;
 			case 'i':
-				config.CONSOLE_INIT = self.optarg;
+				opts.CONSOLE_INIT = self.optarg;
 				break;
 			case 'l':
-				config.LOG = self.optarg;
+				opts.LOG = self.optarg;
 				break;
 			case 'h':
 				usage();
@@ -49,16 +49,35 @@ self.main = function(argv) {
 	sys.spawn('/bin/mount.js', ['/bin/mount.js', '-mia', '-l/proc/dmesg']);
 	if (wait() !== 0) return EGENERIC;
 
-	const dmesg = sys.open(config.LOG, { WRITE: true, CLOSPAWN: true });
-	if (dmesg >= 0) sys.write(dmesg, `initializing TTYs, starting ${config.CONSOLE_INIT} processes`);
+	// init TTYs
+	const dmesg = sys.open(opts.LOG, { WRITE: true, CLOSPAWN: true });
+	if (dmesg >= 0) sys.write(dmesg, `initializing TTYs, starting ${opts.CONSOLE_INIT} processes`);
 
 	let i=0, tty;
-	while (isatty(undefined, tty = `${config.TTYPREFIX}${++i}`) === 0) {
-		const ret = sys.spawn(config.CONSOLE_INIT, [config.CONSOLE_INIT, tty]);
+	while (isatty(undefined, tty = `${opts.TTYPREFIX}${++i}`) === 0) {
+		const ret = sys.spawn(opts.CONSOLE_INIT, [opts.CONSOLE_INIT, tty]);
 		if (ret < 0 && dmesg >= 0)
-			sys.write(dmesg, `failed to spawn ${config.CONSOLE_INIT}: ${strerror(ret)}`);
+			sys.write(dmesg, `failed to spawn ${opts.CONSOLE_INIT}: ${strerror(ret)}`);
 	}
 
-	// collect orphaned processes
+	// create tty7
+	sys.spawn('/bin/mount.js', ['/bin/mount.js', '-mo', 'defaults,terminal=n', 'tty', '7', `${opts.TTYPREFIX}7`])
+	wait();
+
+	// start UI
+	const ret = sys.spawn('/bin/startz.js', ['/bin/startz.js', '/dev/dom/ul id="tty7"'])
+	if (ret < 0 && dmesg >= 0)
+		sys.write(dmesg, `failed to spawn /bin/startz.js: ${strerror(ret)}`);
+
+	// switch to tty7
+	const ftty = sys.open('/dev/tty/ftty', { WRITE: true });
+	if (ftty < 0) {
+		if (dmesg >= 0) sys.write(dmesg, `failed to open /dev/tty/ftty: ${strerror(ftty)}`);
+	} else {
+		const wret = sys.write(ftty, '7');
+		if (wret < 0 && dmesg >= 0) sys.write(dmesg, `failed to write to /dev/tty/ftty: ${strerror(wret)}`);
+	}
+
+	// collect dead processes
 	for (;;) if (wait() === EGENERIC) return 0;
 };
