@@ -4,24 +4,24 @@ const config = {
 
 {
 	// get boot options
-	let options = JSON.parse((await (await fetch('/boot/kernels/__autoindex.json')).text()))
+	const options = JSON.parse((await (await fetch('/boot/kernels/__autoindex.json')).text()))
 		.filter(k => k.type !== 'directory')
 		.map(k => k.name);
 	options.push("cancel boot sequence");
 
 	// setup framebuffer & menu
-	let fb = document.createElement("main");
+	const fb = document.createElement("main");
         fb.id = "azloader-framebuffer";
         document.body.append(fb);
 
-	let menu_window = document.createElement("div");
+	const menu_window = document.createElement("div");
 	menu_window.className = "bootmenu";
 	fb.appendChild(menu_window);
 
-	let menu = document.createElement("ul");
+	const menu = document.createElement("ul");
 	menu_window.appendChild(menu);
 
-	let lines = [];
+	const lines = [];
 	for (const option of options) {
 		let line = document.createElement("li");
 		line.innerText = option.replace(/\.js$/, "");
@@ -30,7 +30,7 @@ const config = {
 	}
 
 	menu.append(document.createElement("hr"));
-	let countdown = document.createElement("p");
+	const countdown = document.createElement("p");
 	menu.append(countdown);
 
 	let selected = 0;
@@ -38,11 +38,17 @@ const config = {
 
 	// define boot func
 	const input_controller = new AbortController()
-	let boot = (kernel) => {
-		// cleanup framebuffer & listener, hand over to kernel
-		document.body.innerHTML = "";
-		input_controller.abort();
-		import(`/boot/kernels/${kernel}`);
+	const boot = () => {
+		if (selected == options.length-1) {
+			// cancel boot seq
+			fb.innerHTML = "";
+			input_controller.abort();
+		} else {
+			// cleanup framebuffer & listener, hand over to kernel
+			input_controller.abort();
+			document.body.innerHTML = "";
+			import(`/boot/kernels/${options[selected]}`);
+		}
 	}
 
 	// setup boot countdown
@@ -63,10 +69,25 @@ const config = {
 			if (!ok) return;
 		}
 
-		resolve(options[selected]);
+		resolve();
 	}).then(boot, ()=>{}));
 
-	// add input event listener
+	// add input/click event listeners
+	for (let i=0; i<lines.length; ++i) {
+		const select = (event) => {
+			event.preventDefault();
+			if (!countdown_controller.signal.aborted) countdown_controller.abort();
+
+			lines[selected].className = "";
+			lines[selected = i].className = "selected";
+		};
+
+		lines[i].addEventListener("touchstart", select, { signal: input_controller.signal });
+		lines[i].addEventListener("mousedown", select, { signal: input_controller.signal });
+
+		lines[i].addEventListener("touchend", boot, { signal: input_controller.signal });
+		lines[i].addEventListener("mouseup", boot, { signal: input_controller.signal });
+	}
 	window.addEventListener("keydown", (event) => {
 		if (!countdown_controller.signal.aborted) countdown_controller.abort();
 		switch (event.key) {
@@ -81,11 +102,8 @@ const config = {
 				lines[++selected].className = "selected";
 				break;
 			case 'Enter':
-				if (selected == options.length-1) {
-					// cancel boot seq
-					fb.innerHTML = "";
-					input_controller.abort();
-				} else boot(options[selected]);
+				boot();
+				break;
 		}
 	}, { signal: input_controller.signal });
 }
