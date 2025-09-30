@@ -117,6 +117,6 @@ const config = {
 async function static_fallback() {
 	// on "shutdown", fallback to static page
 	document.open();
-	document.write((await (await fetch('/index.html')).text()).replaceAll(/<\/?noscript>/, ''));
+	document.write((await (await fetch('/index.html')).text()).replaceAll(/<\/?noscript>/g, ''));
 	document.close();
 }
