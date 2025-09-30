@@ -39,7 +39,7 @@ const files = {
 		},
 	},
 	'ftty': { // currently selected TTY index (ctrl-1,2,3,4...)
-		read: (f, n_bytes, pid) => +window.drivers.tty.selected_index().toString().slice(f.offset, f.offset + n_bytes),
+		read: (f, n_bytes, pid) => window.drivers.tty.selected_index().toString().slice(f.offset, f.offset + n_bytes),
 		write: (f, str, pid) => window.drivers.tty.select_tty(+str),
 	},
 	'pgid': { // TTY's foreground process group ID

@@ -50,6 +50,9 @@ export const syscalls = {
 
 		const str = await vfs.read(pid, fd, count)
 		if (str < 0) return str;
+		//console.log(count)
+		//console.log(str)
+		//console.log(str.length)
 
 		// not thread-safe, but the web worker should be in an Atomics.wait() call
 		let buf = senc(str), out = new Uint8Array(sab);

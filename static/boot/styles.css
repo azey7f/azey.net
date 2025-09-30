@@ -1,14 +1,12 @@
 :root {
   --fb-bg: #000;
   --fb-fg: #ddd;
+
+  --cyan: #33ccff;
+  --pink: #cc33ff;
 }
 
-/* generic */
-.cyan { color: #33ccff; }
-.blue { color: #3d5bf5; }
-.red { color: #b6193c; }
-
-/* "hardware" */
+/***  "hardware"  ***/
 @font-face {
   font-family: custom-tty;
   src: url(/boot/WebPlus_IBM_VGA_8x16.woff);
@@ -30,7 +28,7 @@ body {
 	background-color: var(--fb-bg);
 }
 
-/* bootloader */
+/***  bootloader  ***/
 div.bootmenu {
 	height: fit-content;
 	min-width: fit-content;
@@ -58,8 +56,8 @@ div.bootmenu > ul {
 	background-color: var(--fb-fg);
 }
 
-/* kernel */
-main#framebuffer {
+/***  kernel  ***/
+div#framebuffer {
 	height: 100%;
 	width: 100%;
 	position: absolute;
@@ -90,13 +88,20 @@ ul[id^='tty'], p#early-printk {
 	background-color: var(--fb-fg);
 }
 
-/* userspace */
+input#dummy-input {
+	position: fixed;
+	left: -200vw;
+}
+
+/***  userspace ***/
 /* TODO: make a cssfs driver? */
-.ui-background {
+#ui-root {
 	height: 100%;
 	width: 100%;
 	position: absolute;
 	bottom: 0;
+
+	white-space: normal;
 
 	overflow-x: hidden;
 	overflow-y: scroll;
@@ -105,20 +110,15 @@ ul[id^='tty'], p#early-printk {
 	background-image: url(/www/img/bg.gif); 
 	background-repeat: repeat;
 	background-attachment: fixed;
-	image-rendering: pixelated;
+	image-rendering: crisp-edges;
 }
 
-.z-100 {z-index: 100;}
-.z-200 {z-index: 200;}
-
-
-/***************************************/
 /* banners */
 .under-construction-banner {
 	background-image: url(/www/img/under_construction_moving.gif);
 	background-repeat: repeat-x;
 	background-size: contain;
-	image-rendering: pixelated;
+	image-rendering: crisp-edges;
 
 	width: 100%;
 	height: 5%;
@@ -126,38 +126,146 @@ ul[id^='tty'], p#early-printk {
 	position: fixed; 
 	left: 0;
 }
+
 /* here instead of inline because CSP + I can't be bothered with nonces */
 .top { top:0; }
 .bottom { bottom:0; }
 
-/* terminal */
-input#dummy-input {
-	position: fixed;
-	left: -200vw;
+/* window stuff */
+@media (orientation: portrait) {
+	.floating {
+		margin: 7vh auto;
+		width: 80%; 
+	}
+	.drawer {
+		width: 80%;
+		right: calc(1.5pt - 80%);
+	}
 }
-ul#terminal {
-	height: 45vh;
-	margin: 1em;
-
-	overflow-x: hidden;
-	overflow-y: scroll;
-	overflow-wrap: break-word;
-	overscroll-behavior: none;
-
-	color: #eee;
-	/*text-shadow: 0 0 6pt white;*/
-
-	list-style-type: none;
-	padding-left: 0;
-
+@media (orientation: landscape) {
+	.floating {
+		margin: 10vh auto;
+		width: 53%; 
+	}
+	.drawer {
+		width: 30%;
+		right: calc(1.5pt - 30%);
+	}
 }
-ul#terminal > li {
-	white-space: pre-wrap;
-	min-height: 1em
+.window {
+	background: #000;
+
+	padding: 1em 1em 0 1em;
+	margin: 2em auto;
+
+	outline: none;
+	border: 1.5pt solid;
+	border-image: linear-gradient(to bottom right, var(--cyan), var(--pink)) 1;
+	box-shadow: 0 0 2pt #9ecaed;
+	box-sizing: border-box;
 }
-ul#terminal > li.nowrap {
-	white-space: pre;
+
+.drawer {
+	height: 80vh;
+	z-index: 1;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	margin: auto 0;
+
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+
+	transition: 0.3s;
 }
-ul#terminal > li.spaced {
-	margin: 0.8em 0;
+.drawer:hover, .drawer:focus, .drawer:active {
+	right: 0;
+}
+.drawer > .window {
+	width: 100%;
+	height: 100%;
+	max-width: 100%;
+	max-height: 100%;
+	margin: 0;
+	padding: 0;
+}
+.drawer > .window > article {
+	background: var(--fb-bg);
+	width: calc(100% - 2em);
+	height: calc(100% - 1em);
+	padding: 1em 1em 0 1em;
+}
+.drawer-handle {
+	min-width: 1em;
+	width: 1em;
+	max-height: 100%;
+	margin: 0;
+	padding: 0;
+	background: #000;
+}
+
+/* main */
+.cyan { color: var(--cyan); }
+.pink { color: var(--pink); }
+.center-evenly {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+}
+.center-between {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+.center-left {
+	display: flex;
+	flex-direction: row;
+	justify-content: left;
+}
+.pre { white-space: pre; }
+.hide-overflow { overflow: hidden; }
+.left-overflow {
+	display: flex;
+	justify-content: flex-end;
+}
+.half-width { width: 50%; }
+
+.link { color: var(--pink); }
+.link:hover { color: var(--cyan); }
+
+.list-none {
+	list-style: none;
+	padding: 0.5em;
+}
+.list-none > li { margin: 0.25em 0; }
+
+article { padding: 0; margin: 0; }
+article > p { padding-left: 0.5em; }
+iframe#tunes {
+	zoom: 0.625;
+	padding: 0;
+	margin: 1em 0;
+	height: 90%;
+	width: 100%
+}
+
+/* footer */
+footer.window {
+	text-align: center;
+	color: var(--fb-fg);
+	height: auto;
+	padding: 1em;
+}
+
+a.footer, .badge-link { text-decoration: none; }
+p.badges {
+	line-height: 0;
+	font-size: 0;
+}
+
+p.footer {
+	color: var(--fb-fg);
+	padding: 0;
+	margin: 0;
 }

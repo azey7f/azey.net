@@ -4,7 +4,7 @@ import { fread, fprint, fclose, fflush, print, println, fopen } from '/lib/libjs
 import { getopt, strerror, sleep } from '/lib/libjs/util.js';
 
 const opts = {
-	INDEX: '/www/index.html',
+	INDEX: '/index.html',
 	TTY: undefined,
 };
 
@@ -58,12 +58,16 @@ self.main = function(argv) {
 		fclose(findex);
 	}
 
+	// extract noscript content
+	const matches = Array.from(index.matchAll(/<noscript>\s*(.*)\s*<\/noscript>/gs));
+	if (matches.length === 1) index = matches[0][1];
+
 	// open tty elem
 	const root = fopen(opts.TTY, 'w');
 	if (root < 0) return err(argv[0], opts.TTY, 'failed to open', strerror(root));
 
-	// draw index
-	const ret = fprint(root, index);
+	// draw page
+	const ret = fprint(root, `<li>${index}</li>`);
 	if (ret < 0) return err(argv[0], opts.TTY, 'failed to write', strerror(ret));
 
 	fclose(root);

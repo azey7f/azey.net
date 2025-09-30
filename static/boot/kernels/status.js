@@ -1,1 +1,1 @@
-window.location.href = "https://status.azey.net";
+export default function() { window.location.href = "https://status.azey.net"; }

@@ -47,14 +47,16 @@ async function select(dev, node) {
 	if (dev === selected) return;
 	selected = dev;
 
-	if (mounts[dev].options.terminal === 'y') {
+	const terminal_enabled = mounts[dev].options.terminal === 'y';
+	if (terminal_enabled) {
 		await vfs.close(0, 0); // printk fd
 		await __open_node(0, node, { WRITE: true });
 	}
 
 	for (const i in mounts)
 		await set_hidden(i, +i !== dev);
-	//await draw();
+
+	if (terminal_enabled) await draw();
 
 	event_target.dispatchEvent(new Event('select'));
 	return 0;
@@ -619,7 +621,7 @@ async function set_hidden(dev, hidden) {
 
 	await vfs.__rename_node(0, node, new_name);
 
-	const elem = await vfs.open(0, new_name, { WRITE: true });
+	const elem = await vfs.open(0, new_name, { WRITE: true, TRUNCATE: !mounts[dev].options.terminal });
 
 	if (elem < 0) return elem;
 	mounts[dev].elem = elem;

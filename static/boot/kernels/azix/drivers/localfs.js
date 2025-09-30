@@ -1,4 +1,5 @@
 import * as vfs from '../vfs.js';
+import * as migrations from './localfs/migrations.js'
 
 /* JS localStorage driver
  *
@@ -12,6 +13,21 @@ import * as vfs from '../vfs.js';
 export const name = "localfs";
 export function init() {
 	mounts = 0;
+
+	// migrations
+	if (localStorage.length !== 0) {
+		let last_kver = localStorage.getItem('__localfs_kernel_version');
+		if (last_kver === null) last_kver = 'v0_0_2';
+
+		for (const [kver, functions] of Object.entries(migrations))
+			// semver compare kver > last_kver
+			if (kver.localeCompare(last_kver, undefined, { numeric: true, sensitivity: 'base' }) === 1) {
+				for (const f of Object.values(functions)) f();
+			}
+
+		localStorage.setItem('__localfs_kernel_version', `v${window.config.VERSION.replaceAll('.', '_')}`);
+	}
+
 	return 0;
 }
 export function exit() {
@@ -27,6 +43,7 @@ let mounts;
 export const super_ops = {
 	__mount: (device, node, options) => {
 		if (device.includes('/')) return EINVAL;
+
 		const key = device+'/';
 		if (localStorage.getItem(key) === null) {
 			// doesn't exist, create root node
@@ -42,6 +59,7 @@ export const super_ops = {
 							'# the /etc localfs is mounted by init',
 							'none	/proc		procfs	defaults',
 							'none	/dev		tmpfs	defaults',
+							'none	/dev/sysrq	sysrq	defaults',
 							'none	/dev/input	input	defaults',
 							'none	/dev/dom	domfs	defaults',
 							'0	/dev/tty0	tty	defaults',

@@ -1,6 +1,6 @@
 window.config = {
 	NAME: "azix",
-	VERSION: "0.0.2",
+	VERSION: "0.1.0",
 	INIT: "/bin/init.js",
 
 	ROOT: window.location.origin,
@@ -18,20 +18,21 @@ window.config = {
 	],
 };
 
-import './err.js';
+import err from './err.js';
 import { printk } from './util.js';
 import { __insmod } from './module.js';
 
 import * as vfs from './vfs.js';
 import * as proc from './proc.js';
 
-{
+export async function efi_main() {
 	await start_kernel();
 
 	await printk(`running ${config.INIT} as userland init process`);
 	const spawn_ret = await proc.spawn(0, config.INIT, [config.INIT], []);
 	if (spawn_ret < 0) {
 		printk(`failed to spawn init process: ${spawn_ret}`);
+		return cleanup(EGENERIC);
 	};
 
 	const [_, init_ret] = await proc.wait(0);
@@ -39,7 +40,28 @@ import * as proc from './proc.js';
 		printk(`${config.INIT} exited with error code: -${init_ret}`);
 		printk('if this happened on boot, your /etc/fstab is probably messed up');
 		printk('run localStorage.clear() in the browser console to maybe fix it');
+		return cleanup(EGENERIC);
 	}
+
+	return cleanup(0);
+}
+function cleanup(ret_code) {
+	// shutdown cleanup
+	for (const key of [
+		'clock_start',
+		'config',
+		'dmesg',
+		'drivers',
+		'fb',
+		'pgrp',
+		'proc',
+		'pses',
+		'vfs',
+	].concat(Object.keys(err))) {
+		delete window[key];
+	}
+
+	return ret_code;
 }
 
 async function start_kernel() {
@@ -68,7 +90,7 @@ async function start_kernel() {
 
 	// setup framebuffer
 	await printk('setting up display');
-	window.fb = document.createElement('main');
+	window.fb = document.createElement('div');
 	window.fb.id = 'framebuffer';
 	document.body.append(window.fb);
 

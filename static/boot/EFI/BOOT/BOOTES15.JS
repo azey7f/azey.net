@@ -43,11 +43,17 @@ const config = {
 			// cancel boot seq
 			fb.innerHTML = "";
 			input_controller.abort();
+			static_fallback();
 		} else {
-			// cleanup framebuffer & listener, hand over to kernel
+			// cleanup framebuffer & listener, start kernel
 			input_controller.abort();
 			document.body.innerHTML = "";
-			import(`/boot/kernels/${options[selected]}`);
+
+			import(`/boot/kernels/${options[selected]}`).then(async (kernel) => {
+				const ret = await kernel.default()
+				if (ret < 0) await new Promise(r => setTimeout(r, 3000));
+				if (ret !== undefined) await static_fallback();
+			});
 		}
 	}
 
@@ -106,4 +112,11 @@ const config = {
 				break;
 		}
 	}, { signal: input_controller.signal });
+}
+
+async function static_fallback() {
+	// on "shutdown", fallback to static page
+	document.open();
+	document.write((await (await fetch('/index.html')).text()).replaceAll(/<\/?noscript>/, ''));
+	document.close();
 }

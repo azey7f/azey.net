@@ -1,3 +1,4 @@
+// CRITICAL TODO: drivers use strings and .slice(), which only works for 1 byte-per-char strings. probably rework everything to use Uint8Arrays
 
 export async function read(pid, fd, n_bytes) {
 	if (!(pid in window.proc)) return EINVAL;
