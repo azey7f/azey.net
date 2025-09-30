@@ -178,6 +178,7 @@ input#dummy-input {
 	justify-content: flex-end;
 
 	transition: 0.3s;
+	padding-left: 5em;
 }
 .drawer:hover, .drawer:focus, .drawer:active {
 	right: 0;
@@ -243,7 +244,6 @@ input#dummy-input {
 article { padding: 0; margin: 0; }
 article > p { padding-left: 0.5em; }
 iframe#tunes {
-	zoom: 0.625;
 	padding: 0;
 	margin: 1em 0;
 	height: 90%;
