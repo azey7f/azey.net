@@ -137,19 +137,11 @@ input#dummy-input {
 		margin: 7vh auto;
 		width: 80%; 
 	}
-	.drawer {
-		width: 80%;
-		right: calc(1.5pt - 80%);
-	}
 }
 @media (orientation: landscape) {
 	.floating {
 		margin: 10vh auto;
 		width: 53%; 
-	}
-	.drawer {
-		width: 30%;
-		right: calc(1.5pt - 30%);
 	}
 }
 .window {
@@ -163,47 +155,6 @@ input#dummy-input {
 	border-image: linear-gradient(to bottom right, var(--cyan), var(--pink)) 1;
 	box-shadow: 0 0 2pt #9ecaed;
 	box-sizing: border-box;
-}
-
-.drawer {
-	height: 80vh;
-	z-index: 1;
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	margin: auto 0;
-
-	display: flex;
-	flex-direction: row;
-	justify-content: flex-end;
-
-	transition: 0.3s;
-	padding-left: 5em;
-}
-.drawer:hover, .drawer:focus, .drawer:active {
-	right: 0;
-}
-.drawer > .window {
-	width: 100%;
-	height: 100%;
-	max-width: 100%;
-	max-height: 100%;
-	margin: 0;
-	padding: 0;
-}
-.drawer > .window > article {
-	background: var(--fb-bg);
-	width: calc(100% - 2em);
-	height: calc(100% - 1em);
-	padding: 1em 1em 0 1em;
-}
-.drawer-handle {
-	min-width: 1em;
-	width: 1em;
-	max-height: 100%;
-	margin: 0;
-	padding: 0;
-	background: #000;
 }
 
 /* main */
@@ -243,12 +194,6 @@ input#dummy-input {
 
 article { padding: 0; margin: 0; }
 article > p { padding-left: 0.5em; }
-iframe#tunes {
-	padding: 0;
-	margin: 1em 0;
-	height: 90%;
-	width: 100%
-}
 
 /* footer */
 footer.window {
