@@ -38,14 +38,14 @@ export function init() {
 		}
 
 		for (const buf of buffers)
-			if (buf !== undefined) tryadd(buf, JSON.stringify({
+			if (buf !== undefined) tryadd(buf, window.enc.encode(JSON.stringify({
 				alt: event.altKey ? 1 : 0,
 				ctrl: event.ctrlKey ? 1 : 0,
 				shift: event.shiftKey ? 1 : 0,
 				meta: event.metaKey ? 1 : 0,
 				key: event.key,
 				code: event.keyCode
-			})+'\n');
+			})+'\n'));
 	}, { signal: controller.signal });
 
 	// android input processing
@@ -63,7 +63,7 @@ export function init() {
 		}
 
 		for (const buf of buffers)
-			if (buf !== undefined) tryadd(buf, JSON.stringify(ret)+'\n');
+			if (buf !== undefined) tryadd(buf, window.enc.encode(JSON.stringify(ret)+'\n'));
 	}, { signal: controller.signal });
 	return 0;
 }

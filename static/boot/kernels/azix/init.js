@@ -9,12 +9,6 @@ window.config = {
 
 	DEFAULT_MODULES: [
 		"pipe", // used by pipe() syscall
-		/*"procfs",
-		"ttyctl",
-		"tmpfs",
-		"domfs",
-		"input",
-		"tty",*/
 	],
 };
 
@@ -52,6 +46,8 @@ function cleanup(ret_code) {
 		'config',
 		'dmesg',
 		'drivers',
+		'enc',
+		'dec',
 		'fb',
 		'pgrp',
 		'proc',
@@ -118,35 +114,6 @@ async function start_kernel() {
 	for (const mod of config.DEFAULT_MODULES)
 		await __insmod(await import(`./drivers/${mod}.js`));
 
-	// mount default filesystems
-	/*await try_mount('/proc', 'procfs', 'none');
-	await try_mount('/dev', 'tmpfs', 'none');
-	await try_mount('/dev/input', 'input', 'none');
-	await try_mount('/dev/dom', 'domfs', 'none');
-
-	for (let i=0; i <= 4; ++i) {
-		let name = `tty${i}`;
-		await try_mount(`/dev/${name}`, 'tty', i.toString());
-	}
-
-	await try_mount('/dev/tty', 'ttyctl', 'none');*/
-
 	// end
 	await printk('kernel initialized!');
-
-	// r/w test
-	//for (;;) await vfs_file.read(window.proc[0].files[0], 1); /*
-	/*for (;;) {
-		await vfs_file.write(window.proc[0].files[0], "in: ");
-		const str = await vfs_file.read(window.proc[0].files[0], 1);
-		await vfs_file.write(window.proc[0].files[0], str+'\n');
-	}//*/
-}
-
-async function try_mount(target, fs, ...args) {
-	await printk(`mounting ${fs} on ${target}`);
-	await vfs.open(0, target, { DIR: true, CREATE: true, NOOPEN: true });
-
-	const mount = await vfs.mount(0, target, fs, ...args);
-	if (mount < 0) throw new Error(`error mounting ${target}: ${mount}`);
 }

@@ -28,10 +28,12 @@ Features:
     - TODO: PTY driver mounted at `/dev/pts`, handles line discipline & links `/dev/pts/N` with a `/dev/pts/ptmx` file descriptor, inspired by the [Linux implementation](https://linux.die.net/man/4/ptmx)
     - a ttyctl driver mounted at `/dev/tty`, exposes several files for TTY control:
         - `ctty`: get/set the current process' controlling TTY
+        - `ftty`: get/set index of the currently focused TTY (VT)
         - `pgid`: get/set TTY's foreground process group
         - `ldisc`: get/set TTY's line discipline (`n_tty`, `n_echo` or `n_null`)
     - a pipe driver, mounting it creates a named FIFO; also used by the `pipe()` syscall
     - a localfs driver using JS localStorage mounted in `/etc` and `/root` - with an `/etc/fstab` actually used on "boot" by the init program and `/root/.azsh_history` used for shell history
+    - a sysrq driver, for shutdown/reboot/etc
 - process management
     - each process is a web worker, started from a `createObjectURL` blob read from the filesystem
     - job control, `setsid()` and `setpgid()`

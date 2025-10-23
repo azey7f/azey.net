@@ -2,7 +2,9 @@
 This file uses typed pseudocode for brevity. Functions should enforce this, and return EINVAL for invalid arg types:
 
 - `pid`: uint index of the calling process in `window.proc`, used by the vast majority of functions functions – needs to be passed by argument since a global window.current would cause race conditions
-- `str`: string, `obj`: JS object
+- `obj`: JS object
+- `str`: string
+- `u8str`: Uint8Array representing a string
 - `int` & `uint` are signed and unsigned integers respectively (unbound)
 - `err`: one of the errors defined in `err.js`, `int` type
 - `<type>?`:
@@ -65,7 +67,7 @@ Functions, most implemented as a syscall (though usually with a different signat
     - only flags to change should be supplied, e.g. if an FD was opened with `{ READ: true, NOBLOCK: true }`, you can set it to block with `reopen(fd, { NOBLOCK: false })`
 - `fd? dup(pid, fd, uint newfd?)` - duplicate a file descriptor. if newfd is undefined, the lowest available fd is used
 - `0? close(pid, fd)` - close an open file
-- `str? read(pid, fd, uint n\_bytes)` - read file/dir contents
+- `u8str? read(pid, fd, uint n\_bytes)` - read file/dir contents
     - if `flags.DIR` is set, each call reads one entry (name of file) in the dir. `offset` increments by 1 every `read()` (instead of by length of string) and is used as an index of entries
         - if `n_bytes` is smaller than the length of the entry, returns EINVAL and doesn't increment `offset`
 - `uint? write(pid, fd, str)` - write file contents at `offset`
@@ -113,8 +115,6 @@ Node functions (`node_ops`):
 File functions (`file_ops`):
 - `uint? __openf/__opend(file, open_flags, pid?)` - open file/dir, return file size or dir entry count
 - `0? __close(file, pid?)` - close file/dir, no requirements except returning 0 on success
-- `str? __readf(file, uint n_bytes, pid?)` - read file contents, `n_bytes` from `offset`
+- `u8str? __readf(file, uint n_bytes, pid?)` - read file contents, `n_bytes` from `offset`
 - `str? __readd(file, pid?)` - read a single dir entry of any length
 - `uint? __write(file, str, pid?)` - write string into file, return number of bytes written
-
-TTY functions (`tty_ops`) – unimplemented in non-TTY drivers:

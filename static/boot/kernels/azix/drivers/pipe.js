@@ -108,20 +108,22 @@ export const file_ops = {
 	__readf: async (f, n_bytes, pid) => {
 		const node = nodes[f.node.id];
 
-		let buf = '';
-		while (buf.length < n_bytes) {
-			if (node === undefined) return buf;
+		const buf = new Uint8Array(n_bytes);
+		let read = 0;
+		while (read < n_bytes) {
+			if (node === undefined) return buf.slice(0,read);
 			const ret = tryget(node.buf);
 			if (ret < 0) {
-				if (node.wrefs === 0) return buf;
-				if (f.flags.NOBLOCK) return buf.length ? buf : EWOULDBLOCK;
+				if (node.wrefs === 0) return buf.slice(0,read);
+				if (f.flags.NOBLOCK) return read ? buf.slice(0,read) : EWOULDBLOCK;
 
-				if (await new Promise((resolve) => node.r_awaiting.push((err) => resolve(err)))) return buf;
+				if (await new Promise((resolve) => node.r_awaiting.push((err) => resolve(err)))) return buf.slice(0,read);
 				continue;
 			}
 
 			if (node.w_awaiting.length) node.w_awaiting.pop()(false);
-			buf += ret;
+			buf.set(ret, read);
+			read += ret.length;
 		}
 		return buf;
 	},
@@ -139,7 +141,7 @@ export const file_ops = {
 
 		while (i < str.length) {
 			if (node === undefined) return err();
-			const ret = tryadd(node.buf, str[i]);
+			const ret = tryadd(node.buf, window.enc.encode(str[i]));
 			if (ret < 0) {
 				if (node.rrefs === 0) return err();
 				if (f.flags.NOBLOCK) return i ? i : EWOULDBLOCK;

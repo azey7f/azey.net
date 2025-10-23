@@ -17,7 +17,7 @@ export function exit() {
 
 // int mount count
 let mounts;
-// 2d array of objects indexed by mount dev & VFS node ID, used for caching; contains type (str) and content (either str file content or array of dir entries)
+// 2d array of objects indexed by mount dev & VFS node ID, used for caching; contains type (str) and content (either u8str file content or array of dir entries)
 let nodes;
 
 // core functions
@@ -104,7 +104,7 @@ async function getfcont(node) {
 		const res = await fetch_file(node);
 		if (!res.ok) return ENOENT;
 
-		nodes[dev][node.id] = { type: 'file', content: await res.text() };
+		nodes[dev][node.id] = { type: 'file', content: window.enc.encode(await res.text()) };
 	}
 
 	if (nodes[dev][node.id].type === 'dir') return EISDIR;

@@ -58,7 +58,7 @@ export const node_ops = {
 		nodes[node.id] = {
 			type: 'file',
 			name: node.name,
-			content: '',
+			content: new Uint8Array(),
 		};
 		return 0;
 	},
@@ -76,24 +76,32 @@ export const node_ops = {
 
 export const file_ops = {
 	__openf: (f, flags) => {
-		if (flags.TRUNCATE) nodes[f.node.id].content = '';
+		if (flags.TRUNCATE) nodes[f.node.id].content = new Uint8Array();
 		return nodes[f.node.id].content.length;
 	},
 	__opend: (f, flags) => f.node.children.length,
 
 	__close: (f) => 0,
 
-	__readf: (f, n_bytes) => nodes[f.node.id].content.slice(f.offset, f.offset+n_bytes),
+	__readf: (f, n_bytes) => nodes[f.node.id].content.slice(f.offset, f.offset + n_bytes),
 	__readd: (f) => {
 		const keys = Object.keys(f.node.children);
 		return f.offset < keys.length ? keys[f.offset] : '';
 	},
 
 	__write: (f, str) => {
+		const buf = window.enc.encode(str);
+		const len = f.offset + buf.length;
+
 		const prev = nodes[f.node.id].content;
-		nodes[f.node.id].content = prev.slice(0,f.offset) + str + prev.slice(f.offset+str.length);
+		if (len > prev.length) {
+			nodes[f.node.id].content = new Uint8Array(len);
+			nodes[f.node.id].content.set(prev);
+		}
+
+		nodes[f.node.id].content.set(buf, f.offset);
 		f.size = nodes[f.node.id].content.length;
-		return str.length;
+		return buf.length;
 	},
 }
 

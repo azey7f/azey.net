@@ -14,7 +14,7 @@ export async function insmod(path) {
 
 	const url = URL.createObjectURL(new Blob([
 		// prepend href+path to import paths, needed since the module is loaded as a blob
-                js.replaceAll(/(import.*?)'(\..*?)'(;.*?\n)/gs, `$1'${window.location.href}${path.slice(0,path.lastIndexOf('/')+1)}$2'$3`)
+                window.dec.decode(js).replaceAll(/(import.*?)'(\..*?)'(;.*?\n)/gs, `$1'${window.location.href}${path.slice(0,path.lastIndexOf('/')+1)}$2'$3`)
 	], { type: 'text/javascript' }));
 	const mod = await import(url);
 	URL.revokeObjectURL(url) // GC objectURL

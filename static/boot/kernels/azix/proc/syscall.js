@@ -33,10 +33,6 @@ export async function __syscall(pid, data) {
 	Atomics.notify(sysret, 0);
 }
 
-// data serialization
-const encoder = new TextEncoder();
-function senc(str) { return encoder.encode(str); }
-
 // syscall table
 export const syscalls = {
 	// files
@@ -48,15 +44,14 @@ export const syscalls = {
 	read: async (pid, fd, sab, count) => {
 		if (sab === count || count > sab.byteLength || count < 0) return EINVAL;
 
-		const str = await vfs.read(pid, fd, count)
-		if (str < 0) return str;
+		const buf = await vfs.read(pid, fd, count)
+		if (buf < 0) return buf;
 		//console.log(count)
 		//console.log(str)
 		//console.log(str.length)
 
 		// not thread-safe, but the web worker should be in an Atomics.wait() call
-		let buf = senc(str), out = new Uint8Array(sab);
-		let i = 0;
+		let i = 0, out = new Uint8Array(sab);
 		while (i<count && i<buf.length)
 			out[i] = buf[i++];
 
@@ -81,7 +76,7 @@ export const syscalls = {
 		const path = vfs.path(window.proc[pid].files[fd].node);
 		if (path < 0) return path;
 
-		let buf = senc('/'+path), out = new Uint8Array(sab);
+		let buf = window.enc.encode('/'+path), out = new Uint8Array(sab);
 		if (buf.length > sab.byteLength) return EINVAL;
 
 		// not thread-safe, but the web worker should be in an Atomics.wait() call

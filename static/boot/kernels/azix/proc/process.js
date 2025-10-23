@@ -201,7 +201,7 @@ export async function __link_rec(path) {
 
 	// iterate over all lines, match imports & recursively replace them with blob URLs
 	let blobURLs = [""];
-	const processed = await Promise.all(js.split('\n').map(async (line, i) => {
+	const processed = await Promise.all(window.dec.decode(js).split('\n').map(async (line, i) => {
 		if (blobURLs < 0) return;
 
 		const match = line.match(/^([a-z][a-z])port(.*)(['"])(.*\.js)\3(.*)/);

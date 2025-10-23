@@ -1,23 +1,22 @@
-// CRITICAL TODO: drivers use strings and .slice(), which only works for 1 byte-per-char strings. probably rework everything to use Uint8Arrays
-
 export async function read(pid, fd, n_bytes) {
 	if (!(pid in window.proc)) return EINVAL;
 	if (!(fd in window.proc[pid].files)) return EBADF;
+
 	const f = window.proc[pid].files[fd];
 	if (f === undefined || n_bytes === undefined) return EINVAL;
 	if (!f.flags.READ) return EBADF;
 
 	if (f.flags.DIR) {
 		const ret = await f.op.__readd(f, pid);
-		if (typeof ret == "string") {
+		if (typeof ret === "string") {
 			if (ret.length > n_bytes) return EINVAL;
 			++f.offset;
 		}
-		return ret;
+		return window.enc.encode(ret);
 	}
 
 	const ret = await f.op.__readf(f, n_bytes, pid);
-	if (typeof ret == "string") f.offset += n_bytes;
+	if (typeof ret === "object") f.offset += n_bytes;
 	return ret;
 }
 export default read;

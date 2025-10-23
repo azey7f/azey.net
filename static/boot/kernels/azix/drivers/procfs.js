@@ -93,17 +93,17 @@ export const file_ops = {
 // functions inside __dyn have an additional index argument, nested __dyns add multiple args with the hierarchically
 // lowest ones first (/proc/1/2 -> func(2, 1))
 // __dyn.__self(pid) returns an index to be used for self dirs, e.g. /proc/self for the current process
-const self_i = (f, n_bytes, _, index) => index.toString().slice(f.offset, f.offset+n_bytes);
+const self_i = (f, n_bytes, _, index) => enc.encode(index.toString()).slice(f.offset, f.offset+n_bytes);
 const proc = {
 	__dyn: {
 		__key: () => ['proc'],
 		__self: (pid) => pid,
 		pid: { read: self_i },
 
-		cmdline: { read: (f, n, _, pid) => window.proc[pid].cmdline.join('\0').slice(f.offset, f.offset+n) },
-		env: { read: (f, n, _, pid) => window.proc[pid].env.join('\0').slice(f.offset, f.offset+n) },
-		cwd: { read: (f, n, _, pid) => ('/'+vfs.path(window.proc[pid].cwd)).slice(f.offset, f.offset+n) },
-		state: { read: (f, n, _, pid) => window.proc[pid].state.slice(f.offset, f.offset+n) },
+		cmdline: { read: (f, n, _, pid) => enc.encode(window.proc[pid].cmdline.join('\0')).slice(f.offset, f.offset+n) },
+		env: { read: (f, n, _, pid) => enc.encode(window.proc[pid].env.join('\0')).slice(f.offset, f.offset+n) },
+		cwd: { read: (f, n, _, pid) => enc.encode('/'+vfs.path(window.proc[pid].cwd)).slice(f.offset, f.offset+n) },
+		state: { read: (f, n, _, pid) => enc.encode(window.proc[pid].state).slice(f.offset, f.offset+n) },
 
 		group: { link: (pid) => [window.proc[pid].group.id.toString(), 'group'], },
 		session: { link: (pid) => [window.proc[pid].group.session.id.toString(), 'session'], },
@@ -113,7 +113,7 @@ const proc = {
 
 		fd: { __dyn: {
 			__key: (pid) => ['proc', `${pid}`, 'files'],
-			read: (f, n, _, pid, fd) => ('/'+vfs.path(window.proc[pid].files[fd].node)).slice(f.offset, f.offset+n),
+			read: (f, n, _, pid, fd) => enc.encode('/'+vfs.path(window.proc[pid].files[fd].node)).slice(f.offset, f.offset+n),
 		} },
 	},
 	group: { __dyn: {
@@ -129,13 +129,13 @@ const proc = {
 		sid: { read: self_i },
 		groups: {}, // recursive, assigned below
 		tty: { read: (f, n, _, sid) => window.pses[sid].tty
-			? ('/'+vfs.path(window.pses[sid].tty)).slice(f.offset, f.offset+n)
+			? enc.encode('/'+vfs.path(window.pses[sid].tty)).slice(f.offset, f.offset+n)
 			: ENOTTY
 		},
 	} },
 
 	dmesg: {
-		read: (f, n_bytes) => (window.dmesg.join('')).slice(f.offset, f.offset+n_bytes), // TODO: make this blocking?
+		read: (f, n_bytes) => enc.encode(window.dmesg.join('')).slice(f.offset, f.offset+n_bytes), // TODO: make this blocking?
 		write: (f, str, pid) => printk(str),//printk(`PID ${pid}: ${str}`),
 	},
 
@@ -151,7 +151,7 @@ const proc = {
 				.map(([k,v]) => v !== true ? `${k}=${v}` : k).join();
 			content += `${sb.device} ${'/'+path} ${sb.driver.name} ${options}\n`;
 		}
-		return content.slice(f.offset, f.offset+n_bytes);
+		return enc.encode(content).slice(f.offset, f.offset+n_bytes);
 	}},
 };
 // recursive assigns

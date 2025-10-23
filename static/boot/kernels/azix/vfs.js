@@ -8,6 +8,10 @@ import __mount_node from './vfs/__mount_node.js';
 export async function init(root_dev, root_drv, root_opts) {
 	await printk('initializing VFS layer');
 
+	// define global encoder/decoder objs
+	window.enc = new TextEncoder();
+	window.dec = new TextDecoder();
+
 	// vfs.nodes[0] is a super-root node, on which the actual root is created
 	// this way mount()/umount() can maintain a ref to the current root mount at vfs.nodes[0].children['/']
 	// without needing to handle root any different

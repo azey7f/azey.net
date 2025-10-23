@@ -20,7 +20,7 @@ let mounts;
 const files = {
 	'ctty': { // controlling TTY
 		read: (f, n_bytes, pid) => window.proc[pid].group.session.tty
-			? ('/'+vfs.path(window.proc[pid].group.session.tty)).slice(f.offset, f.offset + n_bytes)
+			? enc.encode('/'+vfs.path(window.proc[pid].group.session.tty)).slice(f.offset, f.offset + n_bytes)
 			: ENOTTY,
 		write: async (f, str, pid) => {
 			if (!(pid in window.pses)) return EPERM;
@@ -39,7 +39,7 @@ const files = {
 		},
 	},
 	'ftty': { // currently selected TTY index (ctrl-1,2,3,4...)
-		read: (f, n_bytes, pid) => window.drivers.tty.selected_index().toString().slice(f.offset, f.offset + n_bytes),
+		read: (f, n_bytes, pid) => enc.encode(window.drivers.tty.selected_index().toString()).slice(f.offset, f.offset + n_bytes),
 		write: (f, str, pid) => window.drivers.tty.select_tty(+str),
 	},
 	'pgid': { // TTY's foreground process group ID
@@ -48,7 +48,7 @@ const files = {
 			if (!node) return ENOTTY;
 
 			const ret = node.op.__tty_get(node, 'pgid');
-			return ret < 0 ? ret : ret.toString().slice(f.offset, f.offset + n_bytes);
+			return ret < 0 ? ret : enc.encode(ret.toString()).slice(f.offset, f.offset + n_bytes);
 		},
 		write: (f, str, pid) => {
 			if (!(pid in window.pses)) return EPERM;
@@ -67,7 +67,7 @@ const files = {
 			if (!node) return ENOTTY;
 
 			const ret = node.op.__tty_get(node, 'ldisc');
-			return ret < 0 ? ret : ret.toString().slice(f.offset, f.offset + n_bytes);
+			return ret < 0 ? ret : enc.encode(ret.toString()).slice(f.offset, f.offset + n_bytes);
 		},
 		write: (f, str, pid) => {
 			if (!(str in ldisc)) return EINVAL;

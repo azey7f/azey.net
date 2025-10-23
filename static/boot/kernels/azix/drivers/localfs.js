@@ -184,7 +184,7 @@ export const file_ops = {
 
 	__close: (f) => 0,
 
-	__readf: (f, n_bytes) => localStorage.getItem(kpath(f.node)).slice(f.offset, f.offset+n_bytes),
+	__readf: (f, n_bytes) => window.enc.encode(localStorage.getItem(kpath(f.node))).slice(f.offset, f.offset+n_bytes),
 	__readd: (f) => {
 		const keys = localStorage.getItem(kpath(f.node)+'/').split('\0');
 		return f.offset < keys.length ? keys[f.offset] : '';

@@ -102,7 +102,9 @@ export const super_ops = {
 			return 0;
 		}
 
-		const elem = await vfs.open(0, `${options.domfs}/ul id="tty${+device}"`, { WRITE: true, CREATE: true, TRUNCATE: true });
+		const elem = await vfs.open(0, `${options.domfs}/ul id="tty${+device}"`, { DEBUG: true, WRITE: true, CREATE: true, TRUNCATE: true });
+		// console.log(elem)
+		// console.log(Object.assign({}, window.proc[0].files))
 		if (elem < 0) return elem;
 
 		const controller = options.terminal === 'y' ? new AbortController() : null;
@@ -184,7 +186,7 @@ export const super_ops = {
 					window.proc[0].files[input_f].offset = 0;
 					const ret = await vfs.read(0, input_f, Number.MAX_SAFE_INTEGER);
 					if (ret < 0) break;
-					const event = JSON.parse(ret);
+					const event = JSON.parse(window.dec.decode(ret));
 					if (event.ctrl && !event.alt && !event.shift && !event.meta) {
 						switch (event.key.toUpperCase()) {
 							case 'C':
@@ -264,7 +266,8 @@ export const file_ops = {
 		if (!(dev in mounts)) return ENOTTY; // tty0 if nothing else is mounted
 
 		const m = mounts[dev];
-		let buf = '';
+		const buf = new Uint8Array(n_bytes);
+		let read = 0;
 		for (;;) {
 			if (m.pgid && m.pgid in window.pgrp && !(pid in window.pgrp[m.pgid].proc)) {
 				signal(-m.pgid, 'SIGTTIN');
@@ -295,14 +298,15 @@ export const file_ops = {
 				(str) => file_ops.__write(f, str, pid),
 				controller.signal,
 			);
-			if (ret < 0) return buf.length > 0 ? buf : ret;
-			buf += ret;
+			if (ret < 0) return buf.length > 0 ? buf.slice(0,read) : ret;
+			buf.set(ret, read);
+			read += ret.length
 
 			const aborted = controller.signal.aborted;
 			controller.abort();
 			if (!aborted) break; // finish if reading wasn't aborted
 		}
-		return buf;
+		return buf.slice(0,read);
 	},
 
 	__write: async (f, buf, pid) => {
@@ -569,6 +573,9 @@ async function draw() {
 	const m = mounts[selected];
 	if (m.options.terminal !== 'y') return 0;
 
+	// console.log(Object.assign({}, m))
+	// console.log(m.elem)
+	// console.log(Object.assign({}, window.proc[0].files))
 	const reopen_promise = vfs.reopen(0, m.elem); // truncate file
 
 	// for some reason pre-wrap only wraps non-whitespace characters,
@@ -613,6 +620,9 @@ async function set_hidden(dev, hidden) {
 	if (+dev === 0) return 0;
 
 	const new_name = `${mounts[dev].options.domfs}/ul id="tty${dev}"${hidden ? ' hidden=""' : ''}`
+	//console.log(dev)
+	//console.log(Object.assign({}, mounts))
+	//console.log(Object.assign({}, window.proc[0].files))
 	const node = window.proc[0].files[mounts[dev].elem].node;
 	//console.log(Object.assign({}, node))
 	//console.log(Object.assign({}, window.proc[0].files[mounts[dev].elem]))

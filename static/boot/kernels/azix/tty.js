@@ -3,25 +3,27 @@ import { signal } from './proc.js';
 
 // line discipline
 
-// sparse array of strs, indexed by process & FD, used when n_bytes is too small
+// sparse array of u8strs, indexed by process & FD, used when n_bytes is too small
 let buffers = [];
 const buf_get = (pid, n_bytes) => {
 	const ret = buffers[pid].slice(0,n_bytes);
 	buffers[pid] = buffers[pid].slice(n_bytes);
-	if (buffers[pid] === '')
+	if (buffers[pid].length === 0)
 		delete buffers[pid];
 	return ret;
 };
 const buf_store = (pid, buf, n_bytes) => {
-	if (!(pid in buffers)) buffers[pid] = '';
-	buffers[pid] += buf.slice(n_bytes);
+	const prev = pid in buffers ? buffers[pid] : new Uint8Array();
+	buffers[pid] = new Uint8Array(prev.length + n_bytes);
+	buffers[pid].set(prev);
+	buffers[pid].set(buf.slice(n_bytes), prev.length);
 };
 export const ldisc = {
 	n_tty: async (pid, n_bytes, awaiting, tryget, echo, asig) => {
 		if (pid in buffers)
 			return buf_get(pid, n_bytes);
 
-		let buf = '';
+		let str = '';
 		loop: for (;;) {
 			const char = to_char(await get(pid, awaiting, tryget, asig));
 			if (char < 0) continue;
@@ -30,15 +32,15 @@ export const ldisc = {
 
 			switch (char) {
 				case '\b':
-					if (buf.length) {
+					if (str.length) {
 						await echo(`\b \b`.repeat(
-							buf.slice(-1).charCodeAt() < 32 ? 2 : 1
+							str.slice(-1).charCodeAt() < 32 ? 2 : 1
 						));
-						buf = buf.slice(0,-1);
+						str = str.slice(0,-1);
 					} else await echo('\x07');
 					continue;
 				case '\n':
-					buf += '\n';
+					str += '\n';
 					await echo('\n');
 					break loop;
 			}
@@ -48,10 +50,11 @@ export const ldisc = {
 				if (code < 32) echar = `^${String.fromCharCode(code + 0x40)}`;
 			} else echar = char.replace(ESC, '^[');
 
-			buf += char;
+			str += char;
 			await echo(echar);
 		}
 
+		const buf = window.enc.encode(str);
 		if (buf.length > n_bytes)
 			buf_store(pid, buf, n_bytes);
 		return buf.slice(0,n_bytes);
@@ -67,7 +70,7 @@ export const ldisc = {
 			buf_store(pid, char, n_bytes);
 
 		await echo(char);
-		return char.slice(0,n_bytes);
+		return window.enc.encode(char).slice(0,n_bytes);
 	},
 
 	n_null: async (pid, n_bytes, awaiting, tryget, echo, asig) => {
@@ -79,7 +82,7 @@ export const ldisc = {
 		if (char.length > n_bytes)
 			buf_store(pid, char, n_bytes);
 
-		return char.slice(0,n_bytes);
+		return window.enc.encode(char).slice(0,n_bytes);
 	},
 };
 

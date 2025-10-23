@@ -18,7 +18,7 @@ export function exit() {
 let mounts;
 // internal representation of the HTML DOM starting at window.fb,
 // driver assumes that nothing else ever touches it
-// each obj contains type, refs, elem, parent & content (either list of children or string)
+// each obj contains type, refs, elem, parent & content (either list of children or u8str)
 let dom;
 // sparse array of refs to dom object, indexed by VFS node ID
 let nodes;
@@ -85,12 +85,20 @@ export const file_ops = {
 	},
 
 	__write: (f, str) => {
+		const buf = window.enc.encode(str);
+		const len = f.offset + buf.length;
+
 		const prev = nodes[f.node.id].content;
-		nodes[f.node.id].content = prev.slice(0,f.offset) + str + prev.slice(f.offset+str.length);
-		nodes[f.node.id].elem.innerHTML = nodes[f.node.id].content;
+		if (len > prev.length) {
+			nodes[f.node.id].content = new Uint8Array(len);
+			nodes[f.node.id].content.set(prev);
+		}
+
+		nodes[f.node.id].content.set(buf, f.offset);
+		nodes[f.node.id].elem.innerHTML = window.dec.decode(nodes[f.node.id].content);
 
 		f.size = nodes[f.node.id].content.length;
-		return str.length;
+		return buf.length;
 	},
 }
 
@@ -109,7 +117,7 @@ function creat(node, dir) {
 		elem.setAttribute(attr, attrs[attr])
 	parent.elem.appendChild(elem);
 
-	const n = mknode(elem, parent, dir ? {} : 'file');
+	const n = mknode(elem, parent, dir ? {} : new Uint8Array());
 	parent.content[node.name] = n;
 	nodes[node.id] = n;
 	return 0;
@@ -121,7 +129,7 @@ function open(f, flags) {
 
 	if (flags.TRUNCATE) {
 		dnode.elem.innerHTML = '';
-		dnode.content = '';
+		dnode.content = new Uint8Array();
 	}
 
 	++dnode.refs;
@@ -174,7 +182,7 @@ function create_dom(elem, parent) {
 		obj.type = 'dir';
 		for (let i=0; i < names.length; ++i)
 			obj.content[names[i]] = create_dom(elem.children[i], obj);
-	} else obj.content = elem.innerHTML;
+	} else obj.content = window.enc.encode(elem.innerHTML);
 	return obj;
 }
 
@@ -191,9 +199,9 @@ function ensure_node_exists(vfs_node) {
 	return vfs_node;
 }
 
-function mknode(elem, parent, content='') {
+function mknode(elem, parent, content) {
 	return {
-		refs: 0, type: typeof content === 'object' ? 'dir' : 'file',
+		refs: 0, type: content instanceof Uint8Array ? 'file' : 'dir',
 		elem, parent, content,
 	}
 }
