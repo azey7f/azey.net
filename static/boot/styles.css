@@ -4,6 +4,24 @@
 
   --cyan: #33ccff;
   --pink: #cc33ff;
+
+  --vga-b: #000;
+  --vga-r: #d00;
+  --vga-g: #0d0;
+  --vga-y: #d50;
+  --vga-a: #00d;
+  --vga-m: #d0d;
+  --vga-c: #0dd;
+  --vga-w: #ddd; /* 0xD instead of 0xA, since standard VGA colors look horrid on a website */
+
+  --vga-B: #555;
+  --vga-R: #f55;
+  --vga-G: #5f5;
+  --vga-Y: #ff5;
+  --vga-A: #55f;
+  --vga-M: #f5f;
+  --vga-C: #5ff;
+  --vga-W: #fff;
 }
 
 /***  "hardware"  ***/
@@ -92,6 +110,41 @@ input#dummy-input {
 	position: fixed;
 	left: -200vw;
 }
+
+/* color mappings so CSP doesn't complain about inline styles */
+.color-b { color: var(--vga-b); }
+.color-r { color: var(--vga-r); }
+.color-g { color: var(--vga-g); }
+.color-y { color: var(--vga-y); }
+.color-a { color: var(--vga-a); }
+.color-m { color: var(--vga-m); }
+.color-c { color: var(--vga-c); }
+.color-w { color: var(--vga-w); } /* 0xD instead of 0xA, since standard VGA colors look horrid on a website */
+.color-B { color: var(--vga-B); }
+.color-R { color: var(--vga-R); }
+.color-G { color: var(--vga-G); }
+.color-Y { color: var(--vga-Y); }
+.color-A { color: var(--vga-A); }
+.color-M { color: var(--vga-M); }
+.color-C { color: var(--vga-C); }
+.color-W { color: var(--vga-W); }
+.background-color-b { background-color: var(--vga-b); }
+.background-color-r { background-color: var(--vga-r); }
+.background-color-g { background-color: var(--vga-g); }
+.background-color-y { background-color: var(--vga-y); }
+.background-color-a { background-color: var(--vga-a); }
+.background-color-m { background-color: var(--vga-m); }
+.background-color-c { background-color: var(--vga-c); }
+.background-color-w { background-color: var(--vga-w); }
+.background-color-B { background-color: var(--vga-B); }
+.background-color-R { background-color: var(--vga-R); }
+.background-color-G { background-color: var(--vga-G); }
+.background-color-Y { background-color: var(--vga-Y); }
+.background-color-A { background-color: var(--vga-A); }
+.background-color-M { background-color: var(--vga-M); }
+.background-color-C { background-color: var(--vga-C); }
+.background-color-W { background-color: var(--vga-W); }
+
 
 /***  userspace ***/
 /* TODO: make a cssfs driver? */

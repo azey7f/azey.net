@@ -581,7 +581,7 @@ async function draw() {
 			if (m.buffer[i+1] !== prev_fg || m.buffer[i+2] !== prev_bg) {
 				prev_fg = m.buffer[i+1];
 				prev_bg = m.buffer[i+2];
-				lines[j] += `</span><span style="color:${colors[prev_fg]};background-color:${colors[prev_bg]}">`;
+				lines[j] += `</span><span class="color-${prev_fg} background-color-${prev_bg}">`;
 			}
 			if (i === m.cursor) {
 				lines[j] += '<span id="cursor">'
@@ -632,6 +632,7 @@ async function set_hidden(dev, hidden) {
 // char functions
 //
 // colors (lowercase for normal, uppercase for bright):
+// see ../../../styles.css
 // b: black
 // r: red
 // g: green
@@ -641,26 +642,6 @@ async function set_hidden(dev, hidden) {
 // w: white
 const mkchar  = (char=' ', fg='w', bg='b') => char+fg+bg;
 const mkempty = (length) => ' wb'.repeat(length);
-
-const colors = {
-	b: '#000',
-	r: '#d00',
-	g: '#0d0',
-	y: '#d50',
-	a: '#00d',
-	m: '#d0d',
-	c: '#0dd',
-	w: '#ddd', // 0xD instead of 0xA, since standard VGA colors look horrid on a website
-
-	B: '#555',
-	R: '#f55',
-	G: '#5f5',
-	Y: '#ff5',
-	A: '#55f',
-	M: '#f5f',
-	C: '#5ff',
-	W: '#fff',
-};
 
 const colors_index   = 'brgyamcw';
 const colors_index_b = 'BRGYAMCW';
