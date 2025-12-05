@@ -27,7 +27,7 @@
 /***  "hardware"  ***/
 @font-face {
   font-family: custom-tty;
-  src: url(/boot/WebPlus_IBM_VGA_8x16.woff);
+  src: url(/boot/Web437_IBM_Model3x_Alt4.woff);
   /* https://int10h.org */
 }
 body {
